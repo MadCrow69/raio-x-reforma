@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: caddy/Dockerfile
+      additional_contexts:
+        base: "service:base"
     image: raio-x-reforma/web
     restart: unless-stopped
     ports:
