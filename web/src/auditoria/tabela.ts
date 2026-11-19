@@ -11,7 +11,7 @@ export type Filtros = Record<Dimensao, string[]>;
 export const SEM_FILTROS: Filtros = { achado: [], erro: [], papel: [], tipo: [] };
 
 export type ColunaId =
-  | 'nota' | 'papel' | 'tipo' | 'item' | 'descricao' | 'ncmOuNbs' | 'cst' | 'cClassTrib'
+  | 'nota' | 'papelTipo' | 'item' | 'descricao' | 'ncmOuNbs' | 'cst' | 'cClassTrib'
   | 'achado' | 'erro' | 'vNota' | 'vMotor' | 'diferenca';
 
 export type Ordem = OrdemTabela<ColunaId>;
@@ -106,8 +106,7 @@ type Chave = string | number | Big | undefined;
 
 const CHAVES: Record<ColunaId, (l: LinhaAuditoria) => Chave> = {
   nota: (l) => l.numeroNota,
-  papel: (l) => ROTULO_PAPEL[l.papel],
-  tipo: (l) => ROTULO_TIPO[l.tipo],
+  papelTipo: (l) => papelTipo(l),
   item: (l) => l.item,
   descricao: (l) => l.descricao,
   ncmOuNbs: (l) => l.ncmOuNbs,
@@ -147,10 +146,6 @@ export interface FocoMemoria {
   item: number;
 }
 export const mesmoFoco = (l: LinhaAuditoria, f: FocoMemoria | null) => !!f && l.chave === f.chave && l.item === f.item;
+/** "Venda · NF-e": papel e tipo numa coluna só (os filtros continuam separados). */
+export const papelTipo = (l: LinhaAuditoria) => `${ROTULO_PAPEL[l.papel]} · ${ROTULO_TIPO[l.tipo]}`;
 export const idLinha = (l: LinhaAuditoria) => `${l.papel}:${l.chave}:${l.item}`;
-
-/**
- * Vendas passam pelo motor do Simples, que não devolve memória: o app a compõe (motor/cliente.ts).
- * Compras (regime regular) trazem a memória do próprio motor oficial.
- */
-export const origemMemoria = (l: LinhaAuditoria): 'MOTOR' | 'COMPOSTA' => (l.papel === 'VENDA' ? 'COMPOSTA' : 'MOTOR');

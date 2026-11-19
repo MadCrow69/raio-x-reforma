@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import type { LinhaAuditoria } from '../auditoria/auditar';
 import { paraCsv } from '../auditoria/csv';
 import {
-  DIMENSOES, TAMANHOS_PAGINA, filtrar, idLinha, opcoesDe, ordenar, semCalculo,
+  DIMENSOES, TAMANHOS_PAGINA, filtrar, idLinha, opcoesDe, papelTipo, ordenar, semCalculo,
   SEM_FILTROS, type ColunaId, type Dimensao, type EstadoAuditoria,
 } from '../auditoria/tabela';
 import { baixarTexto } from '../ui/baixar';
@@ -48,20 +48,20 @@ function Erros({ l }: { l: LinhaAuditoria }) {
 
 const valorMotor = (l: LinhaAuditoria) => (semCalculo(l) ? '—' : formatarMoeda(l.vMotor));
 
+/** Ordem de leitura do contador: o que se confere primeiro (nota, item, achado, valores e diferença) vem antes do detalhe fiscal. */
 const COLUNAS: ColunaTabela<LinhaAuditoria, ColunaId>[] = [
   { id: 'nota', titulo: 'Nota', abre: true, celula: (l) => l.numeroNota },
-  { id: 'papel', titulo: 'Papel', celula: (l) => ROTULO_PAPEL[l.papel] },
-  { id: 'tipo', titulo: 'Tipo', celula: (l) => ROTULO_TIPO[l.tipo] },
   { id: 'item', titulo: 'Item', numerica: true, celula: (l) => l.item },
   { id: 'descricao', titulo: 'Descrição', elastica: true, celula: (l) => l.descricao, dica: (l) => l.descricao },
-  { id: 'ncmOuNbs', titulo: 'NCM/NBS', celula: (l) => l.ncmOuNbs },
-  { id: 'cst', titulo: 'CST', celula: (l) => l.cst },
-  { id: 'cClassTrib', titulo: 'cClassTrib', celula: (l) => l.cClassTrib },
   { id: 'achado', titulo: 'Achado', celula: (l) => <SeloAchado achado={l.achado} /> },
-  { id: 'erro', titulo: 'Código de erro', trunca: true, celula: (l) => <Erros l={l} />, dica: dicaErros },
   { id: 'vNota', titulo: 'Valor na nota', numerica: true, celula: (l) => moeda(l.vNota) },
   { id: 'vMotor', titulo: 'Valor do motor', numerica: true, celula: valorMotor },
   { id: 'diferenca', titulo: 'Diferença', numerica: true, celula: (l) => moeda(l.diferenca) },
+  { id: 'papelTipo', titulo: 'Papel · Tipo', celula: (l) => papelTipo(l) },
+  { id: 'ncmOuNbs', titulo: 'NCM/NBS', celula: (l) => l.ncmOuNbs },
+  { id: 'cst', titulo: 'CST', celula: (l) => l.cst },
+  { id: 'cClassTrib', titulo: 'cClassTrib', celula: (l) => l.cClassTrib },
+  { id: 'erro', titulo: 'Código de erro', trunca: true, celula: (l) => <Erros l={l} />, dica: dicaErros },
 ];
 
 function Cartao({ l }: { l: LinhaAuditoria }) {

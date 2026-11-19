@@ -60,6 +60,7 @@ describe('calcular', () => {
     expect(r[0].vCBS.toString()).toBe('26.12');
     expect(r[0].vIBSUF.toString()).toBe('11.88');
     expect(r[0].vIBSMun.toString()).toBe('0');
+    expect(r[0].origemMemoria).toBe('COMPOSTA');
     expect(prog).toHaveBeenLastCalledWith(1, 1);
     expect(fetchMock.mock.calls[0][0]).toBe('/motor/simples/api/calculadora/observabilidade/simples-nacional');
     expect(fetchMock.mock.calls[0][1].method).toBe('POST');
@@ -70,6 +71,7 @@ describe('calcular', () => {
     const r = await calcular([doc()], 'SIMPLES_POR_DENTRO', parametros());
     expect(r[0].estado).toBe('NAO_CALCULADO');
     expect(r[0].vCBS.toString()).toBe('0');
+    expect(r[0].origemMemoria).toBeUndefined();
   });
 
   it('regular: mapeia gCBS/gIBSUF/gIBSMun e memória', async () => {
@@ -82,6 +84,7 @@ describe('calcular', () => {
     expect(r[0].vIBSUF.toString()).toBe('0.48');
     expect(r[0].vIBSMun.toString()).toBe('0.48');
     expect(r[0].memoria).toContain('Tributação integral');
+    expect(r[0].origemMemoria).toBe('MOTOR');
     const post = fetchMock.mock.calls.find((c) => String(c[0]).includes('regime-geral'))!;
     expect(JSON.parse(post[1].body).itens[0].aliquotasNominais.cbs).toBe(8.8);
   });

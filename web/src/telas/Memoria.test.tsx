@@ -20,6 +20,7 @@ const linha = (i: number, extra: Partial<LinhaAuditoria> = {}): LinhaAuditoria =
   achado: 'OK',
   erros: [],
   vMotor: Big(1),
+  origemMemoria: i % 2 === 0 ? 'COMPOSTA' : 'MOTOR',
   memoria: i === 3 ? 'CBS 0,9% sobre a base de R$ 100,00' : `memória do item ${i}`,
   ...extra,
 });
@@ -40,6 +41,16 @@ describe('Memoria', () => {
     expect(within(venda).getByText('Composta pelo Raio-X a partir da resposta do motor')).toBeTruthy();
     expect(within(venda).queryByText('Memória do motor oficial')).toBeNull();
     expect(within(compra).getByText('Memória do motor oficial')).toBeTruthy();
+  });
+
+  it('lê a origem declarada no item, não o papel; sem origem, não rotula', () => {
+    const invertida = linha(0, { origemMemoria: 'MOTOR' }); // venda cuja memória veio do motor
+    const sem = linha(2, { origemMemoria: undefined });
+    render(<Memoria linhas={[invertida, sem]} foco={null} aoLimparFoco={() => {}} />);
+    const [a, b] = screen.getAllByRole('article');
+    expect(within(a).getByText('Memória do motor oficial')).toBeTruthy();
+    expect(within(b).queryByText('Memória do motor oficial')).toBeNull();
+    expect(within(b).queryByText('Composta pelo Raio-X a partir da resposta do motor')).toBeNull();
   });
 
   it('busca no texto da memória, na nota e na descrição (sem acento)', () => {

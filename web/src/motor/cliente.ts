@@ -77,7 +77,7 @@ function item(
   numero: number,
   estado: EstadoItem,
   erros: ErroMotor[],
-  extra: Partial<Pick<ItemCalculado, 'vCBS' | 'vIBSUF' | 'vIBSMun' | 'memoria'>> = {},
+  extra: Partial<Pick<ItemCalculado, 'vCBS' | 'vIBSUF' | 'vIBSMun' | 'memoria' | 'origemMemoria'>> = {},
 ): ItemCalculado {
   return { chave: doc.chave, numero, estado, vCBS: zero(), vIBSUF: zero(), vIBSMun: zero(), erros, memoria: '', ...extra };
 }
@@ -110,7 +110,7 @@ function mapearSimples(doc: Documento, o: ObjetoSimplesJson): ItemCalculado {
   const memoria =
     `Simples Nacional, IBS/CBS por dentro: CBS ${t.pCBSSN ?? '0'}% = R$ ${t.vCBSSN ?? '0.00'}; ` +
     `IBS ${t.pIBSSN ?? '0'}% = R$ ${t.vIBSSN ?? '0.00'} sobre a base de R$ ${t.vBC ?? '0.00'}.`;
-  return item(doc, o.nObj, estado, erros, { vCBS: dec(t.vCBSSN), vIBSUF, vIBSMun: dec(t.vIBSMun), memoria });
+  return item(doc, o.nObj, estado, erros, { vCBS: dec(t.vCBSSN), vIBSUF, vIBSMun: dec(t.vIBSMun), memoria, origemMemoria: 'COMPOSTA' });
 }
 
 function mapearRegular(doc: Documento, o: ObjetoRegularJson): ItemCalculado {
@@ -124,6 +124,7 @@ function mapearRegular(doc: Documento, o: ObjetoRegularJson): ItemCalculado {
     vIBSUF: dec(g.gIBSUF?.vIBSUF),
     vIBSMun: dec(g.gIBSMun?.vIBSMun),
     memoria,
+    origemMemoria: memoria ? 'MOTOR' : undefined,
   });
 }
 

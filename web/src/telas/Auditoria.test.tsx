@@ -79,7 +79,7 @@ describe('Auditoria: paginação', () => {
 describe('Auditoria: ordenação', () => {
   it('toda coluna de dado é ordenável, com aria-sort', () => {
     render(<Harness linhas={gerar()} />);
-    const titulos = ['Nota', 'Papel', 'Tipo', 'Item', 'Descrição', 'NCM/NBS', 'CST', 'cClassTrib', 'Achado', 'Código de erro', 'Valor na nota', 'Valor do motor', 'Diferença'];
+    const titulos = ['Nota', 'Item', 'Descrição', 'Achado', 'Valor na nota', 'Valor do motor', 'Diferença', 'Papel · Tipo', 'NCM/NBS', 'CST', 'cClassTrib', 'Código de erro'];
     for (const t of titulos) {
       const th = within(tabela()).getByRole('columnheader', { name: t });
       expect(th.getAttribute('aria-sort')).toBe('none');
@@ -92,11 +92,11 @@ describe('Auditoria: ordenação', () => {
     const th = within(tabela()).getByRole('columnheader', { name: 'Valor na nota' });
     fireEvent.click(within(th).getByRole('button'));
     expect(th.getAttribute('aria-sort')).toBe('ascending');
-    const vals = linhasDaTabela().map((tr) => celulas(tr)[10].textContent);
+    const vals = linhasDaTabela().map((tr) => celulas(tr)[4].textContent);
     expect(vals[0]).toBe('R$ 9,50');
     fireEvent.click(within(th).getByRole('button'));
     expect(th.getAttribute('aria-sort')).toBe('descending');
-    expect(celulas(linhasDaTabela()[0])[10].textContent).toBe('R$ 297,50');
+    expect(celulas(linhasDaTabela()[0])[4].textContent).toBe('R$ 297,50');
   });
 
   it('ordena o item como número (2 antes de 10) e texto em pt-BR', () => {
@@ -104,7 +104,7 @@ describe('Auditoria: ordenação', () => {
     const th = within(tabela()).getByRole('columnheader', { name: 'Item' });
     fireEvent.click(within(th).getByRole('button'));
     fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }));
-    const itens = linhasDaTabela().map((tr) => Number(celulas(tr)[3].textContent));
+    const itens = linhasDaTabela().map((tr) => Number(celulas(tr)[1].textContent));
     expect(itens.every((v, i) => i === 0 || v >= itens[i - 1])).toBe(true);
     const descr = within(tabela()).getByRole('columnheader', { name: 'Descrição' });
     fireEvent.click(within(descr).getByRole('button'));
@@ -117,9 +117,9 @@ describe('Auditoria: ordenação', () => {
     render(<Harness linhas={gerar()} />);
     const th = within(tabela()).getByRole('columnheader', { name: 'Diferença' });
     fireEvent.click(within(th).getByRole('button'));
-    expect(celulas(linhasDaTabela()[0])[12].textContent).not.toBe('—');
+    expect(celulas(linhasDaTabela()[0])[6].textContent).not.toBe('—');
     fireEvent.click(within(th).getByRole('button'));
-    expect(celulas(linhasDaTabela()[0])[12].textContent).not.toBe('—');
+    expect(celulas(linhasDaTabela()[0])[6].textContent).not.toBe('—');
   });
 });
 
@@ -173,10 +173,10 @@ describe('Auditoria: busca e filtros', () => {
     expect(soErrA).toBeLessThan(40);
     fireEvent.click(dimensao(/^Papel/));
     fireEvent.click(screen.getByRole('checkbox', { name: /Venda/ }));
-    expect(linhasDaTabela().every((tr) => celulas(tr)[1].textContent === 'Venda')).toBe(true);
+    expect(linhasDaTabela().every((tr) => celulas(tr)[7].textContent!.startsWith('Venda'))).toBe(true);
     fireEvent.click(dimensao(/^Tipo de nota/));
     fireEvent.click(screen.getByRole('checkbox', { name: /NF-e/ }));
-    expect(linhasDaTabela().every((tr) => celulas(tr)[2].textContent === 'NF-e')).toBe(true);
+    expect(linhasDaTabela().every((tr) => celulas(tr)[7].textContent!.endsWith('NF-e'))).toBe(true);
   });
 
   it('"Limpar" da dimensão zera só aquela dimensão', () => {
@@ -208,16 +208,23 @@ describe('Auditoria: estados', () => {
 });
 
 describe('Auditoria: linha', () => {
+  it('junta papel e tipo numa coluna "Venda · NF-e" e ordena pelo rótulo combinado', () => {
+    render(<Harness linhas={gerar()} />);
+    const th = within(tabela()).getByRole('columnheader', { name: 'Papel · Tipo' });
+    fireEvent.click(within(th).getByRole('button'));
+    expect(celulas(linhasDaTabela()[0])[7].textContent).toBe('Compra · NF-e');
+  });
+
   it('mostra código e título do erro, "—" no valor do motor sem cálculo e achado em texto', () => {
     render(<Harness linhas={gerar()} inicial={{ filtros: { achado: ['ERRO_MOTOR'], erro: [], papel: [], tipo: [] }, ordem: { coluna: 'item', direcao: 'asc' } }} />);
     const tr = linhasDaTabela()[0];
     const c = celulas(tr);
-    expect(c[9].textContent).toContain('ERR-');
-    expect(c[9].textContent).toMatch(/NCM inválido|Alíquota ausente/);
-    expect(c[9].getAttribute('title')).toMatch(/ERR-/);
-    expect(c[11].textContent).toBe('—');
-    expect(c[8].textContent).toBe('Erro do motor');
-    expect(c[4].getAttribute('title')).toBe(c[4].textContent);
+    expect(c[11].textContent).toContain('ERR-');
+    expect(c[11].textContent).toMatch(/NCM inválido|Alíquota ausente/);
+    expect(c[11].getAttribute('title')).toMatch(/ERR-/);
+    expect(c[5].textContent).toBe('—');
+    expect(c[3].textContent).toBe('Erro do motor');
+    expect(c[2].getAttribute('title')).toBe(c[2].textContent);
   });
 
   it('clicar na linha abre a memória daquele item', () => {

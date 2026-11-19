@@ -45,6 +45,12 @@ describe('auditar', () => {
     expect(l.ncmOuNbs).toBe('12345678');
     expect(l.cst).toBe('000');
   });
+  it('propaga a origem da memória do item calculado (e não inventa uma)', () => {
+    const d = [doc([item(1, ['0.9', '0.1', '0'])])];
+    expect(auditar(d, [], [calc(1, ['0.9', '0.1', '0'], { origemMemoria: 'COMPOSTA' })])[0].origemMemoria).toBe('COMPOSTA');
+    expect(auditar(d, [], [calc(1, ['0.9', '0.1', '0'], { origemMemoria: 'MOTOR' })])[0].origemMemoria).toBe('MOTOR');
+    expect(auditar(d, [], [calc(1, ['0.9', '0.1', '0'])])[0].origemMemoria).toBeUndefined();
+  });
   it('R$ 0,02 em vCBS diverge', () => {
     const [l] = auditar([doc([item(1, ['0.92', '0.1', '0'])])], [], [calc(1, ['0.9', '0.1', '0'])]);
     expect(l.achado).toBe('VALOR_DIVERGENTE');

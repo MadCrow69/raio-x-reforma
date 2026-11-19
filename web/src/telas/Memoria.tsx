@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { LinhaAuditoria } from '../auditoria/auditar';
 import { ROTULO_ORIGEM_MEMORIA, ROTULO_PAPEL } from '../auditoria/rotulos';
-import { TAMANHO_PADRAO, TAMANHOS_PAGINA, idLinha, mesmoFoco, normalizar, origemMemoria, type FocoMemoria } from '../auditoria/tabela';
+import { TAMANHO_PADRAO, TAMANHOS_PAGINA, idLinha, mesmoFoco, normalizar, type FocoMemoria } from '../auditoria/tabela';
 import Botao from '../ui/componentes/Botao';
 import Paginacao from '../ui/componentes/Paginacao';
 import { contar } from '../ui/formatar';
@@ -16,7 +16,7 @@ export interface MemoriaProps {
 }
 
 function Item({ l }: { l: LinhaAuditoria }) {
-  const origem = origemMemoria(l);
+  const origem = l.origemMemoria;
   return (
     <article className="memoria__item" aria-label={`Memória de cálculo do item ${l.item} da nota ${l.numeroNota}`}>
       <header className="memoria__topo">
@@ -27,7 +27,7 @@ function Item({ l }: { l: LinhaAuditoria }) {
       <p className="memoria__meta">{[ROTULO_PAPEL[l.papel], l.ncmOuNbs && `NCM/NBS ${l.ncmOuNbs}`].filter(Boolean).join(' · ')}</p>
       {l.memoria !== '' ? (
         <>
-          <p className={`memoria__origem memoria__origem--${origem.toLowerCase()}`}>{ROTULO_ORIGEM_MEMORIA[origem]}</p>
+          {origem && <p className={`memoria__origem memoria__origem--${origem.toLowerCase()}`}>{ROTULO_ORIGEM_MEMORIA[origem]}</p>}
           <pre className="memoria__texto">{l.memoria}</pre>
         </>
       ) : (

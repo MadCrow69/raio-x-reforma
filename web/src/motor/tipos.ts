@@ -32,6 +32,9 @@ export interface ErroMotor {
   detail: string;
 }
 
+/** De onde vem o texto da memória: do motor oficial ou composto pelo app (o motor do Simples não devolve memória). */
+export type OrigemMemoria = 'MOTOR' | 'COMPOSTA';
+
 export interface ItemCalculado {
   chave: string;
   numero: number;
@@ -41,6 +44,8 @@ export interface ItemCalculado {
   vIBSMun: Big;
   erros: ErroMotor[];
   memoria: string;
+  /** Ausente quando não há memória. */
+  origemMemoria?: OrigemMemoria;
 }
 
 export type Cenario = 'SIMPLES_POR_DENTRO' | 'SIMPLES_POR_FORA' | 'REGULAR_AUDITORIA';

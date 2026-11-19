@@ -1,7 +1,7 @@
 import Big from 'big.js';
 import { identificarGrupo, type Classificacoes } from '../classificacao/sugestoes';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
-import { chaveItem, type EstadoItem, type ErroMotor, type ItemCalculado } from '../motor/tipos';
+import { chaveItem, type EstadoItem, type ErroMotor, type ItemCalculado, type OrigemMemoria } from '../motor/tipos';
 import type { Achado } from './rotulos';
 
 export type { Achado } from './rotulos';
@@ -23,6 +23,8 @@ export interface LinhaAuditoria {
   vMotor: Big;
   diferenca?: Big;
   memoria: string;
+  /** Quem escreveu a memória; ausente = sem origem declarada (a tela não rotula). */
+  origemMemoria?: OrigemMemoria;
 }
 
 export const TOLERANCIA = Big('0.01'); // por tributo, em R$
@@ -66,6 +68,7 @@ function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<str
         vMotor,
         diferenca,
         memoria: c?.memoria ?? '',
+        origemMemoria: c?.origemMemoria,
       });
     }
   }
