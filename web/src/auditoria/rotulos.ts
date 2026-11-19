@@ -34,6 +34,7 @@ export const ROTULO_TIPO: Record<TipoDocumento, string> = { NFE: 'NF-e', NFCE: '
 export const ROTULO_MOTIVO_IGNORADO: Record<MotivoIgnorado, string> = {
   XML_INVALIDO: 'XML inválido',
   TIPO_NAO_SUPORTADO: 'Documento não suportado',
+  MUITO_GRANDE: 'Arquivo grande demais',
   NFSE_MUNICIPAL: 'NFS-e municipal (só a nacional é lida)',
   EVENTO: 'Evento da nota (cancelamento, correção…)',
   DEVOLUCAO: 'Nota de devolução',

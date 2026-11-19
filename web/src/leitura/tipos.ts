@@ -4,6 +4,7 @@ export type TipoDocumento = 'NFE' | 'NFCE' | 'NFSE';
 export type MotivoIgnorado =
   | 'XML_INVALIDO'
   | 'TIPO_NAO_SUPORTADO'
+  | 'MUITO_GRANDE'
   | 'NFSE_MUNICIPAL'
   | 'EVENTO'
   | 'DEVOLUCAO'
