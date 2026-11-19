@@ -15,7 +15,7 @@ const OPCOES_NO_SEGMENTADO = 3;
 
 const ROTULO_ORIGEM: Record<GrupoClassificacao['origem'], string> = {
   NOTA: 'da nota',
-  TABELA: 'tabela oficial',
+  TABELA: 'tabela oficial — confirme se a redução se aplica',
   PADRAO: 'padrão',
 };
 

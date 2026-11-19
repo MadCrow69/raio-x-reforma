@@ -67,7 +67,11 @@ export async function carregarSugestoes(): Promise<TabelaSugestoes> {
   return { ncm: converterMapa(json.ncm), nbs: converterMapa(json.nbs), excecoes: json.excecoes, padrao: paraOpcao(json.padrao) };
 }
 
-/** Opções cujo código na tabela é igual ou prefixo de `codigo`; a de prefixo mais longo vem primeiro. */
+/**
+ * Opções cujo código na tabela é igual ou prefixo de `codigo`; a de prefixo mais longo vem primeiro. NCM e NBS casam
+ * por prefixo como na validação do motor regular (NcmAplicavelRepository / NbsAplicavelRepository.temNbsAplicavel:
+ * `n.nbs = SUBSTRING(:nbs, 1, LENGTH(n.nbs))`); a base oficial tem vínculos NBS de 5 a 7 dígitos.
+ */
 function opcoesPorPrefixo(
   mapa: Record<string, OpcaoClassificacao[]>,
   excecoes: Record<string, string[]>,
@@ -113,6 +117,10 @@ export function identificarGrupo(item: ItemDocumento): { chave: string; tipo: Gr
   return { chave: nota ? `${base}:${nota.cClassTrib}` : base, tipo, codigo };
 }
 
+/** O padrão (tributação integral) sempre entre as opções, depois das da tabela/nota, sem repetir. */
+const comPadrao = (opcoes: OpcaoClassificacao[], padrao: OpcaoClassificacao) =>
+  opcoes.some((o) => o.cClassTrib === padrao.cClassTrib) ? opcoes : [...opcoes, padrao];
+
 export function agruparParaConfirmacao(itens: ItemDocumento[], tabela: TabelaSugestoes): GrupoClassificacao[] {
   const grupos = new Map<string, GrupoClassificacao>();
 
@@ -137,10 +145,11 @@ export function agruparParaConfirmacao(itens: ItemDocumento[], tabela: TabelaSug
               reducaoCbs: new Big(0),
               reducaoIbs: new Big(0),
             };
-        const opcoes = [sugerida, ...doTipo.filter((o) => o.cClassTrib !== nota.cClassTrib)];
+        const opcoes = comPadrao([sugerida, ...doTipo.filter((o) => o.cClassTrib !== nota.cClassTrib)], tabela.padrao);
         grupo = { chave, tipo, codigo, itens: 0, valor: new Big(0), opcoes, sugerida, origem: 'NOTA' };
       } else if (doTipo.length > 0) {
-        grupo = { chave, tipo, codigo, itens: 0, valor: new Big(0), opcoes: doTipo, sugerida: doTipo[0], origem: 'TABELA' };
+        // A tabela diz que a redução PODE valer para o código, não que vale para esta operação: o padrão fica à mão.
+        grupo = { chave, tipo, codigo, itens: 0, valor: new Big(0), opcoes: comPadrao(doTipo, tabela.padrao), sugerida: doTipo[0], origem: 'TABELA' };
       } else {
         grupo = {
           chave, tipo, codigo, itens: 0, valor: new Big(0),

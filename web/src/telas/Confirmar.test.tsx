@@ -339,7 +339,7 @@ describe('Confirmar — classificação IBS/CBS', () => {
     const lista = await screen.findByRole('region', { name: 'Classificação IBS/CBS' });
     // NCM: 2 itens de venda (300) + 2 de compra (100) = 400; NBS: 500; x1 não entra? (ignorado só some se for outra empresa)
     expect(within(lista).getByText('NCM 6109.10.00')).toBeTruthy();
-    expect(within(lista).getByText('4 itens · tabela oficial')).toBeTruthy();
+    expect(within(lista).getByText('4 itens · tabela oficial — confirme se a redução se aplica')).toBeTruthy();
     expect(within(lista).getByText('R$ 400,00')).toBeTruthy();
     expect(within(lista).getByText('NBS 101011000')).toBeTruthy();
     expect(within(lista).getByText('1 item · padrão')).toBeTruthy();

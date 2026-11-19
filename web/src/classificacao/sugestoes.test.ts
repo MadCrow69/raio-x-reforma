@@ -63,6 +63,21 @@ describe('agruparParaConfirmacao', () => {
     expect(g[0].sugerida.cClassTrib).toBe('200038');
     expect(g[0].sugerida.descricao).toBe('Insumos agropecuários (Anexo IX)');
     expect(g[0].sugerida.reducaoCbs.eq(60)).toBe(true);
+    expect(g[0].opcoes.map((o) => o.cClassTrib)).toEqual(['200038', '200003', '515001', '000001']);
+  });
+
+  it('padrão já presente na tabela não se repete nas opções', () => {
+    const t: TabelaSugestoes = { ...tabela, ncm: { '6109': [padrao, reduzida] } };
+    const [g] = agruparParaConfirmacao([item(1, '10', { ncm: '61091000' })], t);
+    expect(g.opcoes.map((o) => o.cClassTrib)).toEqual(['000001', '200038']);
+  });
+
+  it('NBS casa por prefixo, como a validação do motor regular (NbsAplicavelRepository.temNbsAplicavel)', () => {
+    // A base oficial tem vínculos NBS de 5 a 7 dígitos (ex.: 122011) que o motor aceita para a NBS completa de 9.
+    const t: TabelaSugestoes = { ...tabela, nbs: { '122011': [reduzida] } };
+    const [g] = agruparParaConfirmacao([item(1, '10', { nbs: '122011000' })], t);
+    expect(g.origem).toBe('TABELA');
+    expect(g.sugerida.cClassTrib).toBe('200038');
   });
 
   it('classificação da nota ausente da tabela usa descrição apenas com o código', () => {
@@ -80,11 +95,12 @@ describe('agruparParaConfirmacao', () => {
   it('casa por prefixo (posição de 4 dígitos) e lista a mais específica primeiro', () => {
     const [a] = agruparParaConfirmacao([item(1, '10', { ncm: '01022000' })], tabela);
     expect(a.origem).toBe('TABELA');
-    expect(a.opcoes.map((o) => o.cClassTrib)).toEqual(['200038', '515001']);
+    // o padrão 000001 vem sempre depois das opções da tabela: a redução pode não se aplicar à operação
+    expect(a.opcoes.map((o) => o.cClassTrib)).toEqual(['200038', '515001', '000001']);
     expect(a.sugerida.cClassTrib).toBe('200038');
 
     const [b] = agruparParaConfirmacao([item(1, '10', { ncm: '01021000' })], tabela);
-    expect(b.opcoes.map((o) => o.cClassTrib)).toEqual(['200003', '200038', '515001']);
+    expect(b.opcoes.map((o) => o.cClassTrib)).toEqual(['200003', '200038', '515001', '000001']);
     expect(b.sugerida.cClassTrib).toBe('200003');
   });
 
@@ -101,7 +117,7 @@ describe('agruparParaConfirmacao', () => {
 
   it('exceção retira a opção excetuada do código; sem sobra cai no padrão', () => {
     const [a] = agruparParaConfirmacao([item(1, '10', { ncm: '01029000' })], tabela);
-    expect(a.opcoes.map((o) => o.cClassTrib)).toEqual(['200038']);
+    expect(a.opcoes.map((o) => o.cClassTrib)).toEqual(['200038', '000001']);
 
     const t: TabelaSugestoes = { ...tabela, excecoes: { ncm: { '01029000': ['200038', '515001'] }, nbs: {} } };
     const [b] = agruparParaConfirmacao([item(1, '10', { ncm: '01029000' })], t);
