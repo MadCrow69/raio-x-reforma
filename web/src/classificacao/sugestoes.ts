@@ -102,17 +102,23 @@ function localizarNaTabela(tabela: TabelaSugestoes, cClassTrib: string): OpcaoCl
   return undefined;
 }
 
+/** Identificação do grupo de classificação de um item (fonte única da chave: usada também pelo cliente dos motores). */
+export function identificarGrupo(item: ItemDocumento): { chave: string; tipo: GrupoClassificacao['tipo']; codigo: string } {
+  const ncm = item.ncm?.replace(/\D/g, '');
+  const nbs = item.nbs?.replace(/\D/g, '');
+  const tipo: GrupoClassificacao['tipo'] = ncm ? 'NCM' : nbs ? 'NBS' : 'SEM_CODIGO';
+  const codigo = (tipo === 'NCM' ? ncm : tipo === 'NBS' ? nbs : '') as string;
+  const nota = item.ibscbsNota;
+  const base = tipo === 'SEM_CODIGO' ? tipo : `${tipo}:${codigo}`;
+  return { chave: nota ? `${base}:${nota.cClassTrib}` : base, tipo, codigo };
+}
+
 export function agruparParaConfirmacao(itens: ItemDocumento[], tabela: TabelaSugestoes): GrupoClassificacao[] {
   const grupos = new Map<string, GrupoClassificacao>();
 
   for (const item of itens) {
-    const ncm = item.ncm?.replace(/\D/g, '');
-    const nbs = item.nbs?.replace(/\D/g, '');
-    const tipo: GrupoClassificacao['tipo'] = ncm ? 'NCM' : nbs ? 'NBS' : 'SEM_CODIGO';
-    const codigo = (tipo === 'NCM' ? ncm : tipo === 'NBS' ? nbs : '') as string;
+    const { chave, tipo, codigo } = identificarGrupo(item);
     const nota = item.ibscbsNota;
-    const base = tipo === 'SEM_CODIGO' ? tipo : `${tipo}:${codigo}`;
-    const chave = nota ? `${base}:${nota.cClassTrib}` : base;
 
     let grupo = grupos.get(chave);
     if (!grupo) {
