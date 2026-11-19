@@ -1,0 +1,69 @@
+.esqueleto {
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  overflow: hidden;
+}
+
+.esqueleto__linha {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-height: 60px;
+  padding: var(--esp-3) var(--esp-4);
+}
+
+.esqueleto__linha + .esqueleto__linha {
+  border-top: 1px solid var(--cor-separador);
+}
+
+.esqueleto__textos {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.esqueleto__bloco {
+  display: block;
+  border-radius: var(--raio-1);
+  background: linear-gradient(
+    90deg,
+    var(--cor-preenchimento) 0%,
+    var(--cor-preenchimento-forte) 50%,
+    var(--cor-preenchimento) 100%
+  );
+  background-size: 200% 100%;
+  animation: esqueleto-brilho 1.4s ease-in-out infinite;
+}
+
+.esqueleto__bloco--icone {
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+
+.esqueleto__bloco--titulo {
+  width: 45%;
+  height: 14px;
+}
+
+.esqueleto__bloco--detalhe {
+  width: 70%;
+  height: 12px;
+}
+
+@keyframes esqueleto-brilho {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto__bloco {
+    animation: none;
+  }
+}

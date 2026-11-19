@@ -1,4 +1,4 @@
-import type { TipoDocumento } from '../leitura/tipos';
+import type { MotivoIgnorado, TipoDocumento } from '../leitura/tipos';
 import type { EstadoItem } from '../motor/tipos';
 
 export type Achado = 'OK' | 'ERRO_MOTOR' | 'VALOR_DIVERGENTE' | 'SEM_GRUPO_NA_NOTA' | 'NAO_CALCULADO';
@@ -22,3 +22,14 @@ export const ROTULO_ESTADO: Record<EstadoItem, string> = {
 export const ROTULO_PAPEL: Record<'VENDA' | 'COMPRA', string> = { VENDA: 'Venda', COMPRA: 'Compra' };
 
 export const ROTULO_TIPO: Record<TipoDocumento, string> = { NFE: 'NF-e', NFCE: 'NFC-e', NFSE: 'NFS-e' };
+
+/** Motivo pelo qual um arquivo ficou fora da análise (leitura e separação). */
+export const ROTULO_MOTIVO_IGNORADO: Record<MotivoIgnorado, string> = {
+  XML_INVALIDO: 'XML inválido',
+  TIPO_NAO_SUPORTADO: 'Documento não suportado',
+  NFSE_MUNICIPAL: 'NFS-e municipal (só a nacional é lida)',
+  EVENTO: 'Evento da nota (cancelamento, correção…)',
+  DEVOLUCAO: 'Nota de devolução',
+  DUPLICADO: 'Nota repetida',
+  OUTRA_EMPRESA: 'Outra empresa',
+};

@@ -1,0 +1,138 @@
+/* Modal M (720 px) com folga ≥ 64 px em cima/embaixo e 48 px nos lados; < 768 px vira folha de baixo. */
+.folha-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 48px;
+  background: var(--cor-fundo-sobreposto);
+  animation: folha-fundo-entra var(--duracao-media) ease both;
+}
+
+.folha {
+  width: min(720px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--cor-superficie);
+  border-radius: var(--raio-3);
+  box-shadow: var(--sombra-flutuante);
+  animation: folha-entra var(--duracao-media) var(--curva-padrao) both;
+}
+
+.folha__alca {
+  display: none;
+}
+
+.folha__topo {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-4) var(--esp-4) var(--esp-3) var(--esp-5);
+  border-bottom: 1px solid var(--cor-separador);
+}
+
+.folha__titulo {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: var(--texto-titulo-3);
+}
+
+.folha__fechar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-preenchimento);
+  color: var(--cor-texto-2);
+  cursor: pointer;
+}
+
+.folha__miolo {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--esp-4) var(--esp-5);
+}
+
+.folha__rodape {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-5);
+  border-top: 1px solid var(--cor-separador);
+}
+
+@media (max-width: 1023px) {
+  .folha__fechar {
+    width: var(--alvo-toque);
+    height: var(--alvo-toque);
+  }
+}
+
+@media (max-width: 767px) {
+  .folha-fundo {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .folha {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: var(--raio-3) var(--raio-3) 0 0;
+    animation-name: folha-sobe;
+  }
+
+  .folha__alca {
+    display: block;
+    flex: none;
+    width: 36px;
+    height: 5px;
+    margin: var(--esp-2) auto 0;
+    border-radius: var(--raio-pilula);
+    background: var(--cor-preenchimento-forte);
+  }
+
+  .folha__topo {
+    padding: var(--esp-2) var(--esp-3) var(--esp-2) var(--esp-4);
+  }
+
+  .folha__miolo {
+    padding: var(--esp-4);
+  }
+
+  .folha__rodape {
+    padding: var(--esp-3) var(--esp-4) calc(var(--esp-3) + env(safe-area-inset-bottom));
+  }
+
+  .folha__rodape > * {
+    flex: 1 1 0;
+  }
+}
+
+@keyframes folha-fundo-entra {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes folha-entra {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes folha-sobe {
+  from {
+    transform: translateY(100%);
+  }
+}

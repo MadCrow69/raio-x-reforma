@@ -34,6 +34,9 @@ npm test
 npm run build
 ```
 
+Visual estilo Apple: tokens (cor, fonte, espaçamento, raio, modo escuro) em `web/src/ui/tokens.css`,
+componentes em `web/src/ui/componentes/`. Componentes usam só os tokens, nunca cor solta.
+
 Detalhes dos motores em [`motores/README.md`](motores/README.md).
 
 ## Créditos

@@ -1,0 +1,126 @@
+/*
+ * Tokens do design system do Raio-X da Reforma (estilo Apple/HIG).
+ * Fonte única de cor, fonte, espaçamento, raio, altura de controle e movimento.
+ * Componentes usam só estas variáveis — nunca hex cru.
+ *
+ * Contraste (WCAG 2.2 AA): o azul de destaque das Global Constraints (#007AFF / #0A84FF) é usado em
+ * ícones, foco, bordas e seleção. Texto azul e botão preenchido usam variantes mais escuras do mesmo
+ * azul porque #007AFF com texto branco dá 4,0:1 (abaixo de 4,5:1):
+ *   --cor-destaque-texto  #0066CC sobre branco 5,6:1 · sobre #F2F2F7 5,0:1 (escuro: #409CFF sobre #1C1C1E 6,0:1;
+ *                         #0A84FF daria só 3,5:1 sobre o cinza do botão secundário)
+ *   --cor-destaque-botao  #0071E3 com texto branco 4,7:1 (nos dois modos)
+ * O mesmo vale para as semânticas: o tom das Global Constraints pinta ponto/ícone; o "-texto" escreve.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Fonte: pilha do sistema; Inter (auto-hospedada via @fontsource/inter) fora das plataformas Apple. */
+  --fonte: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+
+  /* Escala de espaçamento 4/8/12/16/24/32 */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+
+  /* Raios 8/12/16 (+ pílula) */
+  --raio-1: 8px;
+  --raio-2: 12px;
+  --raio-3: 16px;
+  --raio-pilula: 999px;
+
+  /* Tipografia (papéis fixos) */
+  --texto-titulo-grande: 700 34px/1.12 var(--fonte); /* Large Title — 1 por tela */
+  --texto-titulo-3: 600 20px/1.25 var(--fonte);
+  --texto-destaque: 600 17px/1.35 var(--fonte); /* Headline: títulos de linha */
+  --texto-corpo: 400 17px/1.45 var(--fonte);
+  --texto-secundario: 400 15px/1.4 var(--fonte);
+  --texto-nota: 400 13px/1.4 var(--fonte); /* Footnote: metadados, rodapé */
+  --texto-cabecalho-secao: 600 12px/1.3 var(--fonte); /* cabeçalho de lista agrupada, CAIXA ALTA */
+
+  /* Alturas de controle: computador / tela de toque (< 1024 px) */
+  --altura-controle: 40px;
+  --alvo-toque: 44px;
+
+  /* Largura da coluna de leitura do fluxo */
+  --largura-conteudo: 720px;
+
+  /* Movimento (zerado em prefers-reduced-motion) */
+  --duracao-curta: 160ms;
+  --duracao-media: 280ms;
+  --curva-padrao: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Cores — claro */
+  --cor-fundo: #f2f2f7; /* systemGroupedBackground */
+  --cor-superficie: #ffffff; /* secondarySystemGroupedBackground */
+  --cor-superficie-elevada: #ffffff;
+  --cor-preenchimento: rgba(118, 118, 128, 0.12); /* fundo do segmentado, esqueleto */
+  --cor-preenchimento-forte: rgba(118, 118, 128, 0.2);
+  --cor-texto: #1d1d1f;
+  --cor-texto-2: #6e6e73; /* secundário: 5,1:1 sobre branco, 4,6:1 sobre o fundo */
+  --cor-separador: rgba(60, 60, 67, 0.18);
+  --cor-borda-tracejada: rgba(60, 60, 67, 0.3);
+  --cor-fundo-sobreposto: rgba(0, 0, 0, 0.4);
+
+  --cor-destaque: #007aff;
+  --cor-destaque-texto: #0066cc;
+  --cor-destaque-botao: #0071e3;
+  --cor-destaque-suave: rgba(0, 122, 255, 0.1);
+  --cor-sobre-destaque: #ffffff;
+
+  --cor-sucesso: #34c759;
+  --cor-sucesso-texto: #1e7b34;
+  --cor-alerta: #ff9f0a;
+  --cor-alerta-texto: #9a5800;
+  --cor-alerta-suave: rgba(255, 159, 10, 0.14);
+  --cor-erro: #ff3b30;
+  --cor-erro-texto: #c4001a;
+  --cor-erro-suave: rgba(255, 59, 48, 0.12);
+
+  --sombra-cartao: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cor-fundo: #000000;
+    --cor-superficie: #1c1c1e;
+    --cor-superficie-elevada: #2c2c2e;
+    --cor-preenchimento: rgba(118, 118, 128, 0.24);
+    --cor-preenchimento-forte: rgba(118, 118, 128, 0.36);
+    --cor-texto: #f5f5f7;
+    --cor-texto-2: #a1a1a6; /* 7,3:1 sobre #1C1C1E */
+    --cor-separador: rgba(84, 84, 88, 0.6);
+    --cor-borda-tracejada: rgba(235, 235, 245, 0.3);
+    --cor-fundo-sobreposto: rgba(0, 0, 0, 0.6);
+
+    --cor-destaque: #0a84ff;
+    --cor-destaque-texto: #409cff; /* azul de contraste aumentado do iOS: 4,5:1 até sobre o cinza do botão secundário */
+    --cor-destaque-botao: #0071e3;
+    --cor-destaque-suave: rgba(10, 132, 255, 0.18);
+
+    --cor-sucesso-texto: #34c759;
+    --cor-alerta-texto: #ff9f0a;
+    --cor-alerta-suave: rgba(255, 159, 10, 0.2);
+    --cor-erro-texto: #ff453a;
+    --cor-erro-suave: rgba(255, 69, 58, 0.2);
+
+    --sombra-cartao: none;
+    --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --texto-titulo-grande: 700 28px/1.15 var(--fonte);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duracao-curta: 0ms;
+    --duracao-media: 0ms;
+  }
+}

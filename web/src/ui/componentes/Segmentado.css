@@ -1,0 +1,54 @@
+.segmentado {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-width: 100%;
+  padding: 2px;
+  border-radius: var(--raio-1);
+  background: var(--cor-preenchimento);
+}
+
+.segmentado__opcao {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  min-height: 32px;
+  padding: 0 var(--esp-4);
+  border: 0;
+  border-radius: calc(var(--raio-1) - 2px); /* raio interno = externo − folga */
+  background: transparent;
+  color: var(--cor-texto);
+  font: var(--texto-secundario);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--duracao-curta) ease,
+    box-shadow var(--duracao-curta) ease;
+}
+
+.segmentado__opcao[aria-selected='true'] {
+  background: var(--cor-superficie-elevada);
+  font-weight: 600;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.12),
+    0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.segmentado__contador {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-preenchimento-forte);
+  font: var(--texto-nota);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1023px) {
+  .segmentado__opcao {
+    min-height: var(--alvo-toque);
+  }
+}
