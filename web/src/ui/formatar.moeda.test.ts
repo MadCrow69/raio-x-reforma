@@ -12,6 +12,11 @@ describe('moeda pt-BR', () => {
     expect(parseNumeroBR('abc')).toBeNull();
     expect(parseNumeroBR('1,234')).toBeNull(); // mais de 2 casas
     expect(parseNumeroBR('-5')).toBeNull();
+    expect(parseNumeroBR('1234.56')).toBeNull();
+    expect(parseNumeroBR('3600000.50')).toBeNull();
+    expect(parseNumeroBR('1.2')).toBeNull();
+    expect(parseNumeroBR('1.234.567,89')?.eq('1234567.89')).toBe(true);
+    expect(parseNumeroBR('R$ 1.234.567,89')?.eq('1234567.89')).toBe(true);
   });
 
   it('formata com separador de milhar e vírgula', () => {

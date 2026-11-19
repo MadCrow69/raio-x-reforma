@@ -33,11 +33,11 @@ export const formatarMoeda = (v: Big): string => `R$ ${formatarNumeroBR(v)}`;
 
 /**
  * Texto digitado em pt-BR ("R$ 3.600.000,00", "3600000", "12,5") → Big; null se vazio ou inválido.
- * Ponto é separador de milhar; vírgula, o decimal (até 2 casas). Sem sinal.
+ * Ponto só vale como separador de milhar em agrupamento correto (1.234.567); "1234.56" é inválido
+ * (seria lido como 123.456, erro de 100×). Vírgula é o decimal (até 2 casas). Sem sinal.
  */
 export function parseNumeroBR(texto: string): Big | null {
   const limpo = texto.replace(/R\$/g, '').replace(/\s/g, '');
-  if (limpo === '') return null;
-  const normal = limpo.replace(/\./g, '').replace(',', '.');
-  return /^\d+(\.\d{1,2})?$/.test(normal) ? new Big(normal) : null;
+  if (!/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(limpo) && !/^\d+(,\d{1,2})?$/.test(limpo)) return null;
+  return new Big(limpo.replace(/\./g, '').replace(',', '.'));
 }

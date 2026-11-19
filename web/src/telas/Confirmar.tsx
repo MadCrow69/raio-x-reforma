@@ -171,31 +171,35 @@ export default function Confirmar({ leitura, cnpjInicial, aoVoltar, aoConfirmar 
   async function calcular() {
     if (motivo || !rbt12Valido) return;
     setCalculando(true);
-    const classificacoes: Classificacoes = Object.fromEntries(grupos.map((g) => [g.chave, opcaoEscolhida(g, trocas)]));
-    const atividadePorTipo: ParametrosCalculo['atividadePorTipo'] = {};
-    const aliquotasPorAtividade: Record<string, AliquotasSimples> = {};
-    for (const e of escolhidas) {
-      if (!e.atividade) continue;
-      for (const t of e.grupo.tipos) if (tiposPresentes.has(t)) atividadePorTipo[t] = e.atividade.codigo;
-    }
-    for (const r of resolvidas) aliquotasPorAtividade[r.atividade.codigo] = r.aliquotas;
+    try {
+      const classificacoes: Classificacoes = Object.fromEntries(grupos.map((g) => [g.chave, opcaoEscolhida(g, trocas)]));
+      const atividadePorTipo: ParametrosCalculo['atividadePorTipo'] = {};
+      const aliquotasPorAtividade: Record<string, AliquotasSimples> = {};
+      for (const e of escolhidas) {
+        if (!e.atividade) continue;
+        for (const t of e.grupo.tipos) if (tiposPresentes.has(t)) atividadePorTipo[t] = e.atividade.codigo;
+      }
+      for (const r of resolvidas) aliquotasPorAtividade[r.atividade.codigo] = r.aliquotas;
 
-    let origemCompras: OrigemCompras;
-    if (semCompras && percentualCompras) {
-      origemCompras = {
-        tipo: 'ESTIMADA',
-        percentualSobreFaturamento: percentualCompras,
-        aliquotaNominalTotal: await aliquotaNominalDaEmpresa(vendas),
-      };
-    } else {
-      // Os créditos reais dependem do cálculo dos motores: quem calcula (passo 3) os soma e substitui este zero.
-      origemCompras = { tipo: 'REAL', creditos: ZERO };
+      let origemCompras: OrigemCompras;
+      if (semCompras && percentualCompras) {
+        origemCompras = {
+          tipo: 'ESTIMADA',
+          percentualSobreFaturamento: percentualCompras,
+          aliquotaNominalTotal: await aliquotaNominalDaEmpresa(vendas),
+        };
+      } else {
+        // Os créditos reais dependem do cálculo dos motores: quem calcula (passo 3) os soma e substitui este zero.
+        origemCompras = { tipo: 'REAL', creditos: ZERO };
+      }
+      aoConfirmar({
+        cnpjEmpresa: cnpjEfetivo,
+        parametros: { classificacoes, atividadePorTipo, aliquotasSimples: aliquotasPorAtividade },
+        origemCompras,
+      });
+    } finally {
+      setCalculando(false);
     }
-    aoConfirmar({
-      cnpjEmpresa: cnpjEfetivo,
-      parametros: { classificacoes, atividadePorTipo, aliquotasSimples: aliquotasPorAtividade },
-      origemCompras,
-    });
   }
 
   return (
