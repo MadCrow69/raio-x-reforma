@@ -50,7 +50,7 @@ Descartável quanto ao código de teste; os Dockerfiles e o compose ficam. **Se 
 **Interfaces:**
 - Produces: serviços compose `motor-regular` e `motor-simples` (rede interna), portas internas registradas em `docs/spike-motores.md`; fixtures de resposta reais dos motores usadas pelas Tasks 7–9.
 
-- [ ] **Step 1:** `motores/regime-regular.Dockerfile` multi-stage: `git clone` + `checkout ${COMMIT_REGULAR}` → `./mvnw flyway:migrate -Dflyway.configFiles=./flyway/flyway-pro.conf` (gera `calculadora/db/calculadora-pro.db`) → `./mvnw -DskipTests package` → imagem `eclipse-temurin:21-jre` rodando `java -Dspring.profiles.active=offline -jar api-regime-geral.jar` com o `.db` em `./calculadora/db/`. Estágio extra nomeado `base` que só contém o `.db` (reutilizado pelo motor do Simples e pela Task 5).
+- [ ] **Step 1:** `motores/regime-regular.Dockerfile` multi-stage: `git clone` + `checkout ${COMMIT_REGULAR}` → `./mvnw flyway:migrate -Dflyway.configFiles=./flyway/flyway-pro.conf` (gera `calculadora/db/calculadora-pro.db`) → `./mvnw -DskipTests package` → imagem `eclipse-temurin:21-jre` rodando `java -Dspring.profiles.active=offline -jar api-regime-geral.jar` com o `.db` em `./calculadora/db/`. Estágio extra nomeado `base` que só contém o `.db` (reutilizado pelo motor do Simples e pela Task 5): `docker build --target base -f motores/regime-regular.Dockerfile .` deve funcionar sozinho, e o compose deve permitir que outros Dockerfiles copiem dele (ex.: `additional_contexts` apontando para esse alvo ou imagem nomeada `raio-x-reforma/base`) — registrar o mecanismo em `motores/README.md`.
 - [ ] **Step 2:** `motores/simples-nacional.Dockerfile`: mesmo padrão com `${COMMIT_SIMPLES}`, copiando o `.db` do estágio `base` do regime regular (o repositório do Simples não traz scripts de banco). Registrar no `motores/README.md` os dois commits fixados (Release 15).
 - [ ] **Step 3:** `docker compose up -d --build` → Expected: os dois containers `healthy`/rodando; `GET /api/swagger-ui.html` responde 200 em cada um (via `docker compose exec` ou porta publicada só no spike).
 - [ ] **Step 4:** Chamar `POST /api/calculadora/observabilidade/regime-geral` com o exemplo de `docs/exemplos.md` do repositório oficial, trocando `dhFatoGerador` para `2027-03-10` → Expected: 200, itens 1–3 `CALCULO_SIMULADO`, item 4 `INCONSISTENCIA_ENTRADA` com `REG-011`. Salvar resposta em `regular-nfe-2027.json`.
@@ -106,7 +106,7 @@ export interface ItemDocumento {
 }
 export interface Parte { documento: string; tipo: 'PJ' | 'PF' | 'ESTRANGEIRO'; municipioIbge?: string; uf?: string; }
 export interface Documento {
-  chave: string; tipo: TipoDocumento; tpDoc: 55 | 65 | 91;
+  chave: string; numero: string; /* nNF ou nNFSe */ tipo: TipoDocumento; tpDoc: 55 | 65 | 91;
   emissao: string;           // ISO 8601 com offset, como no XML
   emitente: Parte & { crt?: string }; destinatario?: Parte;
   itens: ItemDocumento[]; arquivo: string;
@@ -283,7 +283,7 @@ export function paraCsv(linhas: LinhaAuditoria[]): string; // separador ';', dec
 - Consumes: `Documento`, `ItemCalculado` (cenários `SIMPLES_POR_DENTRO` e `SIMPLES_POR_FORA`), `AliquotasSimples`, `participacaoPJ`.
 - Produces:
 ```ts
-export type OrigemCompras = { tipo: 'REAL'; creditos: Big } | { tipo: 'ESTIMADA'; percentualSobreFaturamento: Big };
+export type OrigemCompras = { tipo: 'REAL'; creditos: Big } | { tipo: 'ESTIMADA'; percentualSobreFaturamento: Big; aliquotaNominalTotal: Big /* cbs+ibsEstadual+ibsMunicipal, em pontos */ };
 export interface ResultadoCenario { impostoMes: Big; creditoClientePJMes: Big; }
 export type Veredito = 'REGULAR_TENDE_MELHOR' | 'SIMPLES_TENDE_MELHOR' | 'DEPENDE_DOS_CLIENTES' | 'EMPATE';
 export interface ResultadoSimulacao { meses: string[]; faturamentoMes: Big; simples: ResultadoCenario; regular: ResultadoCenario; diferencaMes: Big; veredito: Veredito; origemCompras: 'REAL' | 'ESTIMADA'; percentualPJ: Big; notas2026Simuladas: boolean; }
@@ -314,7 +314,7 @@ export function simular(entrada: { vendas: Documento[]; compras: Documento[]; po
 - Produces:
 ```ts
 export type Passo = 'ENVIAR' | 'CONFIRMAR' | 'CALCULANDO' | 'RESULTADO';
-export interface EstadoFluxo { passo: Passo; leitura?: ResultadoLeitura; cnpjEmpresa?: string; separacao?: Separacao; parametros?: ParametrosCalculo; auditoria?: LinhaAuditoria[]; simulacao?: ResultadoSimulacao; erro?: string; }
+export interface EstadoFluxo { passo: Passo; leitura?: ResultadoLeitura; cnpjEmpresa?: string; separacao?: Separacao; parametros?: ParametrosCalculo; origemCompras?: OrigemCompras; auditoria?: LinhaAuditoria[]; simulacao?: ResultadoSimulacao; erro?: string; }
 export type AcaoFluxo =
   | { tipo: 'ARQUIVOS_LIDOS'; leitura: ResultadoLeitura }
   | { tipo: 'EMPRESA_CONFIRMADA'; cnpjEmpresa: string; parametros: ParametrosCalculo; origemCompras: OrigemCompras }
