@@ -27,7 +27,7 @@ describe('reduzirFluxo', () => {
       documentos: [doc('1', EMPRESA, OUTRA), doc('2', EMPRESA), doc('3', OUTRA, EMPRESA), doc('4', OUTRA, TERCEIRA)],
       ignorados: [],
     };
-    const e = reduzirFluxo(ESTADO_INICIAL, { tipo: 'ARQUIVOS_LIDOS', leitura });
+    const e = reduzirFluxo(ESTADO_INICIAL, { tipo: 'ARQUIVOS_LIDOS', leitura, arquivos: [] });
     expect(e.passo).toBe('CONFIRMAR');
     expect(e.leitura).toBe(leitura);
     expect(e.cnpjEmpresa).toBe(EMPRESA);
@@ -40,6 +40,7 @@ describe('reduzirFluxo', () => {
     const lido = reduzirFluxo(ESTADO_INICIAL, {
       tipo: 'ARQUIVOS_LIDOS',
       leitura: { documentos: [doc('1', EMPRESA)], ignorados: [] },
+      arquivos: [],
     });
     const comErro = reduzirFluxo(lido, { tipo: 'ERRO', mensagem: 'Motor fora do ar' });
     expect(comErro.passo).toBe('CONFIRMAR');
@@ -51,6 +52,7 @@ describe('reduzirFluxo', () => {
     const lido = reduzirFluxo(ESTADO_INICIAL, {
       tipo: 'ARQUIVOS_LIDOS',
       leitura: { documentos: [doc('1', EMPRESA, OUTRA), doc('2', OUTRA, EMPRESA)], ignorados: [] },
+      arquivos: [],
     });
     const parametros = { classificacoes: {}, atividadePorTipo: {}, aliquotasSimples: {} };
     const origemCompras = { tipo: 'REAL' as const, creditos: new Big(0) };
@@ -61,5 +63,16 @@ describe('reduzirFluxo', () => {
     expect(e.separacao?.compras.map((d) => d.numero)).toEqual(['1']);
     expect(e.parametros).toBe(parametros);
     expect(e.origemCompras).toBe(origemCompras);
+  });
+
+  it('VOLTAR_AO_ENVIO reabre o passo 1 mantendo arquivos e leitura, sem o que dependia da empresa', () => {
+    const arquivos = [new File(['x'], 'a.xml')];
+    const leitura = { documentos: [doc('1', EMPRESA, OUTRA)], ignorados: [] };
+    const lido = reduzirFluxo(ESTADO_INICIAL, { tipo: 'ARQUIVOS_LIDOS', leitura, arquivos });
+    const e = reduzirFluxo(lido, { tipo: 'VOLTAR_AO_ENVIO' });
+    expect(e.passo).toBe('ENVIAR');
+    expect(e.arquivos).toBe(arquivos);
+    expect(e.leitura).toBe(leitura);
+    expect(e.separacao).toBeUndefined();
   });
 });

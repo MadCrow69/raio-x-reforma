@@ -1,6 +1,7 @@
 import { LucideProvider, ScanLine } from 'lucide-react'
 import './App.css'
 import { useFluxo, type Passo } from './fluxo/estado'
+import Confirmar from './telas/Confirmar'
 import Enviar from './telas/Enviar'
 import Botao from './ui/componentes/Botao'
 
@@ -43,11 +44,23 @@ export default function App() {
 
         <main className="app__conteudo">
           {estado.passo === 'ENVIAR' ? (
-            <Enviar aoContinuar={(leitura) => despachar({ tipo: 'ARQUIVOS_LIDOS', leitura })} />
+            <Enviar
+              inicial={estado.leitura && estado.arquivos ? { leitura: estado.leitura, arquivos: estado.arquivos } : undefined}
+              aoContinuar={(leitura, arquivos) => despachar({ tipo: 'ARQUIVOS_LIDOS', leitura, arquivos })}
+            />
+          ) : estado.passo === 'CONFIRMAR' && estado.leitura ? (
+            <Confirmar
+              leitura={estado.leitura}
+              cnpjInicial={estado.cnpjEmpresa ?? ''}
+              aoVoltar={() => despachar({ tipo: 'VOLTAR_AO_ENVIO' })}
+              aoConfirmar={({ cnpjEmpresa, parametros, origemCompras }) =>
+                despachar({ tipo: 'EMPRESA_CONFIRMADA', cnpjEmpresa, parametros, origemCompras })
+              }
+            />
           ) : (
-            // Passos 2 e 3 chegam nas próximas tarefas (Confirmar empresa, Resultado).
+            // O passo 3 (cálculo e resultado) chega na próxima tarefa.
             <section className="em-construcao">
-              <h1 className="em-construcao__titulo">Confirmar empresa</h1>
+              <h1 className="em-construcao__titulo">Calculando</h1>
               <p className="em-construcao__texto">Esta etapa ainda está em construção.</p>
               <Botao variante="secundario" onClick={() => despachar({ tipo: 'NOVA_ANALISE' })}>
                 Nova análise

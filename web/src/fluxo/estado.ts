@@ -14,6 +14,8 @@ export type Passo = 'ENVIAR' | 'CONFIRMAR' | 'CALCULANDO' | 'RESULTADO';
 
 export interface EstadoFluxo {
   passo: Passo;
+  /** Arquivos enviados (só em memória): o "Voltar" do passo 2 reabre o passo 1 com eles, sem pedir de novo. */
+  arquivos?: File[];
   leitura?: ResultadoLeitura;
   cnpjEmpresa?: string;
   separacao?: Separacao;
@@ -25,7 +27,8 @@ export interface EstadoFluxo {
 }
 
 export type AcaoFluxo =
-  | { tipo: 'ARQUIVOS_LIDOS'; leitura: ResultadoLeitura }
+  | { tipo: 'ARQUIVOS_LIDOS'; leitura: ResultadoLeitura; arquivos: File[] }
+  | { tipo: 'VOLTAR_AO_ENVIO' }
   | { tipo: 'EMPRESA_CONFIRMADA'; cnpjEmpresa: string; parametros: ParametrosCalculo; origemCompras: OrigemCompras }
   | { tipo: 'CALCULO_CONCLUIDO'; auditoria: LinhaAuditoria[]; simulacao: ResultadoSimulacao }
   | { tipo: 'ERRO'; mensagem: string }
@@ -44,9 +47,13 @@ export function reduzirFluxo(estado: EstadoFluxo, acao: AcaoFluxo): EstadoFluxo 
     case 'ARQUIVOS_LIDOS':
       return {
         passo: 'CONFIRMAR',
+        arquivos: acao.arquivos,
         leitura: acao.leitura,
         ...comEmpresa(acao.leitura, detectarEmpresa(acao.leitura.documentos)),
       };
+    case 'VOLTAR_AO_ENVIO':
+      // Mantém arquivos e leitura; o que dependia da empresa confirmada é refeito ao continuar de novo.
+      return { passo: 'ENVIAR', arquivos: estado.arquivos, leitura: estado.leitura };
     case 'EMPRESA_CONFIRMADA': {
       if (!estado.leitura) return { ...estado, erro: 'Envie as notas antes de confirmar a empresa.' };
       return {

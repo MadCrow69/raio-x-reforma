@@ -33,17 +33,20 @@ export interface ItemListaProps {
   detalhe?: ReactNode;
   /** Valor à direita (número, data). */
   valor?: ReactNode;
+  /** Controle da linha (ex.: escolher uma opção), numa faixa própria abaixo do texto, alinhada a ele. */
+  controle?: ReactNode;
 }
 
-export function ItemLista({ icone, titulo, detalhe, valor }: ItemListaProps) {
+export function ItemLista({ icone, titulo, detalhe, valor, controle }: ItemListaProps) {
   return (
-    <li className="item-lista">
+    <li className={['item-lista', controle && 'item-lista--com-controle'].filter(Boolean).join(' ')}>
       {icone && <span className="item-lista__icone">{icone}</span>}
       <span className="item-lista__textos">
         <span className="item-lista__titulo">{titulo}</span>
         {detalhe && <span className="item-lista__detalhe">{detalhe}</span>}
       </span>
       {valor !== undefined && <span className="item-lista__valor">{valor}</span>}
+      {controle && <div className="item-lista__controle">{controle}</div>}
     </li>
   );
 }

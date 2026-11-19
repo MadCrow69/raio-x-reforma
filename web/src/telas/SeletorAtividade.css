@@ -1,0 +1,163 @@
+.seletor-atividade {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.seletor-atividade__rotulo {
+  font: var(--texto-destaque);
+  font-size: 15px;
+}
+
+.seletor-atividade__botao {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  width: 100%;
+  min-height: var(--altura-controle);
+  padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--cor-separador);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  font: var(--texto-secundario);
+  text-align: left;
+  cursor: pointer;
+}
+
+.seletor-atividade__botao:hover {
+  border-color: var(--cor-destaque);
+}
+
+.seletor-atividade__botao--erro {
+  border-color: var(--cor-erro);
+}
+
+.seletor-atividade__botao svg {
+  flex: none;
+  margin-left: auto;
+  color: var(--cor-texto-2);
+}
+
+/* Uma linha só (a descrição completa está na lista e no title): o botão não cresce com texto longo. */
+.seletor-atividade__valor {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seletor-atividade__vazio {
+  color: var(--cor-texto-2);
+}
+
+.seletor-atividade__erro {
+  font: var(--texto-nota);
+  color: var(--cor-erro-texto);
+}
+
+.seletor-atividade__busca {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-height: var(--altura-controle);
+  margin-bottom: var(--esp-3);
+  padding: 0 var(--esp-3);
+  border-radius: var(--raio-2);
+  background: var(--cor-preenchimento);
+  color: var(--cor-texto-2);
+}
+
+.seletor-atividade__busca input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: calc(var(--altura-controle) - 2px);
+  border: 0;
+  background: transparent;
+  font: var(--texto-corpo);
+  color: var(--cor-texto);
+}
+
+.seletor-atividade__busca input:focus-visible {
+  outline: none;
+}
+
+.seletor-atividade__busca:focus-within {
+  box-shadow: 0 0 0 3px var(--cor-destaque-suave);
+}
+
+.seletor-atividade__lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.seletor-atividade__opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-1);
+}
+
+.seletor-atividade__opcao + .seletor-atividade__opcao {
+  border-top: 1px solid var(--cor-separador);
+}
+
+/* Rádio desenhado dentro de uma caixa de toque de 44 px; o texto é a <label> irmã (clicável). */
+.seletor-atividade__opcao input {
+  appearance: none;
+  flex: none;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  margin: 0;
+  background: radial-gradient(circle, transparent 0 8px, var(--cor-texto-2) 8px 9.5px, transparent 10px);
+  cursor: pointer;
+}
+
+.seletor-atividade__opcao input:checked {
+  background: radial-gradient(
+    circle,
+    var(--cor-destaque-botao) 0 5px,
+    transparent 5.5px 8px,
+    var(--cor-destaque-botao) 8px 9.5px,
+    transparent 10px
+  );
+}
+
+.seletor-atividade__textos {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-0);
+  padding: var(--esp-3) 0;
+  cursor: pointer;
+}
+
+.seletor-atividade__descricao {
+  font: var(--texto-secundario);
+  overflow-wrap: anywhere;
+}
+
+.seletor-atividade__anexo {
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+}
+
+.seletor-atividade__vazia {
+  padding: var(--esp-4) 0;
+  color: var(--cor-texto-2);
+  text-align: center;
+}
+
+@media (max-width: 1023px) {
+  .seletor-atividade__botao {
+    min-height: var(--alvo-toque);
+  }
+
+  .seletor-atividade__busca {
+    min-height: 0;
+  }
+
+  .seletor-atividade__busca input {
+    min-height: var(--alvo-toque);
+  }
+}

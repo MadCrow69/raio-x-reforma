@@ -1,0 +1,113 @@
+.confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  min-width: 0;
+}
+
+.confirmar__cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.confirmar__titulo {
+  font: var(--texto-titulo-grande);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.confirmar__lide {
+  max-width: 60ch;
+  font: var(--texto-corpo);
+  color: var(--cor-texto-2);
+  text-wrap: pretty;
+}
+
+.confirmar__secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  min-width: 0;
+}
+
+.confirmar__subtitulo {
+  padding: 0 var(--esp-4);
+  font: var(--texto-cabecalho-secao);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-texto-2);
+}
+
+.confirmar__cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  min-width: 0;
+  padding: var(--esp-4);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-cartao);
+}
+
+.confirmar__contagem {
+  font: var(--texto-secundario);
+  color: var(--cor-texto-2);
+}
+
+.confirmar__resultado {
+  font: var(--texto-secundario);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.confirmar__falha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-3);
+}
+
+.confirmar__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3) var(--esp-4);
+}
+
+.confirmar__calcular {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--esp-2) var(--esp-4);
+}
+
+.confirmar__motivo {
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+}
+
+@media (max-width: 767px) {
+  .confirmar {
+    gap: var(--esp-4);
+  }
+
+  .confirmar__cartao {
+    padding: var(--esp-3);
+  }
+
+  .confirmar__calcular {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .confirmar__acoes {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

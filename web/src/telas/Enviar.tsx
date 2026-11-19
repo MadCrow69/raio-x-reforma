@@ -1,4 +1,4 @@
-import { ArrowRight, CircleAlert, CircleCheck, FileUp, FileX, RotateCcw, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CircleAlert, CircleCheck, FileUp, RotateCcw, ShieldCheck } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type MouseEvent } from 'react';
 import { ROTULO_MOTIVO_IGNORADO, ROTULO_TIPO } from '../auditoria/rotulos';
 import { lerArquivos } from '../leitura/lerArquivos';
@@ -9,14 +9,16 @@ import Botao from '../ui/componentes/Botao';
 import Esqueleto from '../ui/componentes/Esqueleto';
 import ListaAgrupada, { ItemLista, ItemListaRecolhivel } from '../ui/componentes/ListaAgrupada';
 import { contar, formatarPeriodo } from '../ui/formatar';
+import ArquivosIgnorados from './ArquivosIgnorados';
 import './Enviar.css';
 
 export interface EnviarProps {
-  aoContinuar: (leitura: ResultadoLeitura) => void;
+  /** Entrega a leitura e os arquivos que a geraram (o fluxo os guarda para o "Voltar" do passo 2). */
+  aoContinuar: (leitura: ResultadoLeitura, arquivos: File[]) => void;
+  /** Volta do passo 2: reabre o passo 1 com os arquivos e a leitura de antes. */
+  inicial?: { leitura: ResultadoLeitura; arquivos: File[] };
 }
 
-/** Arquivos ignorados mostrados por vez dentro de cada motivo (o resto vem em "Mostrar mais"). */
-const IGNORADOS_POR_PAGINA = 20;
 const ORDEM_TIPOS: TipoDocumento[] = ['NFE', 'NFCE', 'NFSE'];
 
 const PRIVACIDADE =
@@ -27,14 +29,14 @@ function arquivosDoEvento(lista: FileList | null | undefined): File[] {
 }
 
 /** Passo 1: soltar/escolher XMLs e ZIPs; mostra o que foi lido e o que ficou de fora, com o motivo. */
-export default function Enviar({ aoContinuar }: EnviarProps) {
-  const [arquivos, setArquivos] = useState<File[]>([]);
-  const [leitura, setLeitura] = useState<ResultadoLeitura | null>(null);
+export default function Enviar({ aoContinuar, inicial }: EnviarProps) {
+  const [arquivos, setArquivos] = useState<File[]>(inicial?.arquivos ?? []);
+  const [leitura, setLeitura] = useState<ResultadoLeitura | null>(inicial?.leitura ?? null);
   const [lendo, setLendo] = useState(false);
   const [arrastando, setArrastando] = useState(false);
   const [aviso, setAviso] = useState<DadosAviso | null>(null);
   const entrada = useRef<HTMLInputElement>(null);
-  const arquivosRef = useRef<File[]>([]);
+  const arquivosRef = useRef<File[]>(inicial?.arquivos ?? []);
   const geracao = useRef(0);
   const idMotivo = useId();
 
@@ -258,7 +260,7 @@ export default function Enviar({ aoContinuar }: EnviarProps) {
             iconeDepois
             disabled={!podeContinuar}
             aria-describedby={podeContinuar ? undefined : idMotivo}
-            onClick={() => leitura && aoContinuar(leitura)}
+            onClick={() => leitura && aoContinuar(leitura, arquivos)}
           >
             Continuar
           </Botao>
@@ -267,34 +269,6 @@ export default function Enviar({ aoContinuar }: EnviarProps) {
 
       <Aviso aviso={aviso} aoFechar={() => setAviso(null)} />
     </div>
-  );
-}
-
-function ArquivosIgnorados({ itens }: { itens: DocumentoIgnorado[] }) {
-  const [visiveis, setVisiveis] = useState(IGNORADOS_POR_PAGINA);
-  const restantes = itens.length - visiveis;
-  // Mesmo detalhe em todos (o caso comum): diz uma vez só, em cima, e a lista fica só com os nomes.
-  const detalheComum = itens.every((d) => d.detalhe === itens[0].detalhe) ? itens[0].detalhe : undefined;
-  return (
-    <>
-      {detalheComum && <p className="ignorados__explicacao">{detalheComum}</p>}
-      <ul className="ignorados">
-        {itens.slice(0, visiveis).map((d, i) => (
-          <li key={`${d.arquivo}-${i}`} className="ignorados__item">
-            <FileX size={16} className="ignorados__icone" aria-hidden />
-            <span className="ignorados__textos">
-              <span className="ignorados__arquivo">{d.arquivo}</span>
-              {!detalheComum && d.detalhe && <span className="ignorados__detalhe">{d.detalhe}</span>}
-            </span>
-          </li>
-        ))}
-      </ul>
-      {restantes > 0 && (
-        <Botao variante="simples" onClick={() => setVisiveis((v) => v + IGNORADOS_POR_PAGINA)}>
-          Mostrar mais {Math.min(restantes, IGNORADOS_POR_PAGINA)} de {restantes}
-        </Botao>
-      )}
-    </>
   );
 }
 

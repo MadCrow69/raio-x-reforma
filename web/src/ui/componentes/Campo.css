@@ -1,0 +1,92 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+}
+
+.campo__topo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.campo__rotulo {
+  font: var(--texto-destaque);
+  font-size: 15px;
+}
+
+.campo__selo {
+  padding: 0 var(--esp-2);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-alerta-suave);
+  color: var(--cor-alerta-texto);
+  font: var(--texto-nota);
+  font-weight: 600;
+}
+
+.campo__caixa {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-width: 0;
+  min-height: var(--altura-controle);
+  padding: 0 var(--esp-3);
+  border: 1px solid var(--cor-separador);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+}
+
+.campo__caixa:focus-within {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 3px var(--cor-destaque-suave);
+}
+
+.campo__caixa--erro {
+  border-color: var(--cor-erro);
+}
+
+.campo__entrada {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: calc(var(--altura-controle) - 2px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: var(--texto-corpo);
+  font-variant-numeric: tabular-nums;
+}
+
+/* O foco já aparece na caixa inteira. */
+.campo__entrada:focus-visible {
+  outline: none;
+}
+
+.campo__afixo {
+  flex: none;
+  color: var(--cor-texto-2);
+  font: var(--texto-secundario);
+}
+
+.campo__ajuda {
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+  text-wrap: pretty;
+}
+
+.campo__erro {
+  font: var(--texto-nota);
+  color: var(--cor-erro-texto);
+}
+
+/* Em tela de toque o próprio input tem 44 px (a caixa só o contorna). */
+@media (max-width: 1023px) {
+  .campo__caixa {
+    min-height: 0;
+  }
+
+  .campo__entrada {
+    min-height: var(--alvo-toque);
+  }
+}

@@ -84,6 +84,24 @@
   text-align: right;
 }
 
+/* Linha com controle: o texto e o valor ficam na 1ª linha; o controle ocupa a 2ª, na largura toda. */
+.item-lista--com-controle {
+  flex-wrap: wrap;
+  row-gap: var(--esp-2);
+}
+
+.item-lista--com-controle > .item-lista__textos {
+  flex: 1 1 0;
+}
+
+.item-lista__controle {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  min-width: 0;
+}
+
 /* Recolhível */
 .item-lista--recolhivel {
   display: block;
