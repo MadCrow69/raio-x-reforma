@@ -1,8 +1,10 @@
 import Big from 'big.js';
+import { ROTULO_ORIGEM_ALIQUOTAS, ROTULO_TIPO } from '../auditoria/rotulos';
 import { EMPATE_PERCENTUAL, type ResultadoSimulacao, type Veredito } from '../simulacao/simular';
 import Alerta from '../ui/componentes/Alerta';
 import Botao from '../ui/componentes/Botao';
-import { contar, formatarMeses, formatarMoeda } from '../ui/formatar';
+import ListaAgrupada, { ItemLista } from '../ui/componentes/ListaAgrupada';
+import { contar, formatarMeses, formatarMoeda, formatarPercentual } from '../ui/formatar';
 import { AVISO_LEGAL, NOTA_SEXTA_FAIXA } from './avisos';
 import './Resumo.css';
 
@@ -45,6 +47,64 @@ function explicacao({ veredito, diferencaMes }: ResultadoSimulacao): string | nu
     return `A diferença é menor que ${EMPATE_PERCENTUAL.toString().replace('.', ',')}% do imposto do Simples: na prática, os dois custam o mesmo.`;
   }
   return null;
+}
+
+/** Casas dos percentuais do Simples (as mesmas enviadas ao motor, montarRequisicoes.ts). */
+const CASAS_PERCENTUAL_SIMPLES = 4;
+
+const periodo = (meses: string[]) => `${formatarMeses(meses)} (${contar(meses.length, 'mês', 'meses')})`;
+
+/** "NF-e e NFC-e", "NF-e, NFC-e e NFS-e". */
+function juntar(partes: string[]): string {
+  return partes.length <= 1 ? (partes[0] ?? '') : `${partes.slice(0, -1).join(', ')} e ${partes[partes.length - 1]}`;
+}
+
+/** De onde vem cada número do Resumo (spec §6): atividade e alíquotas do Simples, meses, faturamento, créditos e alíquotas nominais. */
+function ComoChegamos({ simulacao }: { simulacao: ResultadoSimulacao }) {
+  const { atividades, aliquotasNominais, estimativa, proporcaoCreditos, mesesCompras } = simulacao;
+  const reais = simulacao.origemCompras === 'REAL';
+  let origemCreditos: string;
+  if (reais) {
+    const proporcao = formatarPercentual(proporcaoCreditos ? proporcaoCreditos.times(100) : new Big(0));
+    origemCreditos =
+      `Reais: IBS/CBS das notas de compra (grupo da nota ou recalculado pelo motor regular) × ${proporcao} ` +
+      `(proporção da receita incluída) ÷ ${contar(mesesCompras.length, 'mês', 'meses')} de compras`;
+  } else if (estimativa) {
+    origemCreditos =
+      `Estimados: ${formatarPercentual(estimativa.percentualSobreFaturamento)} do faturamento × alíquota nominal ` +
+      `${formatarPercentual(estimativa.aliquotaNominalTotal)} (${ROTULO_ORIGEM_ALIQUOTAS[estimativa.origemAliquota]})`;
+  } else origemCreditos = 'Estimados a partir do faturamento';
+
+  return (
+    <ListaAgrupada titulo="Como chegamos aqui" rodape="O cálculo de cada item está nas abas Auditoria e Memória de cálculo.">
+      {atividades.map((a) => (
+        <ItemLista
+          key={a.cAtivSN}
+          titulo={`Atividade ${a.cAtivSN} · ${juntar(a.tipos.map((t) => ROTULO_TIPO[t]))}`}
+          detalhe={
+            `Anexo ${a.aliquotas.anexo}, ${a.aliquotas.faixa}ª faixa · alíquota efetiva total ${formatarPercentual(a.aliquotas.efetivaTotal)} · ` +
+            `CBS ${formatarPercentual(a.aliquotas.pCBSSN, CASAS_PERCENTUAL_SIMPLES)} e IBS ${formatarPercentual(a.aliquotas.pIBSSN, CASAS_PERCENTUAL_SIMPLES)} dentro do DAS`
+          }
+        />
+      ))}
+      <ItemLista titulo="Meses das vendas" valor={periodo(simulacao.meses)} />
+      {reais && mesesCompras.length > 0 && <ItemLista titulo="Meses das compras" valor={periodo(mesesCompras)} />}
+      <ItemLista titulo="Faturamento por mês" detalhe="Itens de venda incluídos na comparação ÷ meses das vendas" valor={formatarMoeda(simulacao.faturamentoMes)} />
+      <ItemLista titulo="Créditos das compras por mês" detalhe={origemCreditos} valor={formatarMoeda(simulacao.creditosMes)} />
+      {aliquotasNominais.map((n) => (
+        <ItemLista
+          key={[n.cbs, n.ibsEstadual, n.ibsMunicipal, n.origem].join('|')}
+          titulo="Alíquotas nominais do regime regular"
+          detalhe={[
+            `CBS ${formatarPercentual(n.cbs)}`,
+            `IBS estadual ${formatarPercentual(n.ibsEstadual)}`,
+            `IBS municipal ${formatarPercentual(n.ibsMunicipal)}`,
+            ...(n.origem ? [ROTULO_ORIGEM_ALIQUOTAS[n.origem]] : []),
+          ].join(' · ')}
+        />
+      ))}
+    </ListaAgrupada>
+  );
 }
 
 function AvisoComAuditoria({
@@ -160,6 +220,8 @@ export default function Resumo({ simulacao, sextaFaixa = false, notasCompra, com
         <p className="resumo__nota">{`Faturamento médio analisado: ${porMes(simulacao.faturamentoMes)}`}</p>
         <p className="resumo__nota">{`Vendas: ${pj.toFixed(0)}% para empresas · ${pf.toFixed(0)}% para consumidor final`}</p>
       </section>
+
+      <ComoChegamos simulacao={simulacao} />
 
       <p className="resumo__legal">{AVISO_LEGAL}</p>
     </div>

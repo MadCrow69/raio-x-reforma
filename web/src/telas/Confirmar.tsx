@@ -18,7 +18,7 @@ import {
   type AtividadeSimples,
 } from '../motor/atividades';
 import { ALIQUOTAS_REFERENCIA_2027, buscarAliquotasNominais } from '../motor/cliente';
-import type { AliquotasNominais, ParametrosCalculo } from '../motor/tipos';
+import type { AliquotasNominais, OrigemAliquotasNominais, ParametrosCalculo } from '../motor/tipos';
 import { aliquotasSimples, LIMITE_SIMPLES, SUBLIMITE, type AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
 import type { OrigemCompras } from '../simulacao/simular';
 import Alerta from '../ui/componentes/Alerta';
@@ -198,10 +198,12 @@ export default function Confirmar({ leitura, cnpjInicial, rascunho, aoVoltar, ao
 
       let origemCompras: OrigemCompras;
       if (semCompras && percentualCompras) {
+        const nominal = await aliquotaNominalDaEmpresa(vendas);
         origemCompras = {
           tipo: 'ESTIMADA',
           percentualSobreFaturamento: percentualCompras,
-          aliquotaNominalTotal: await aliquotaNominalDaEmpresa(vendas),
+          aliquotaNominalTotal: nominal.total,
+          origemAliquota: nominal.origem,
         };
       } else {
         // Os créditos reais dependem do cálculo dos motores: quem calcula (passo 3) os soma e substitui este zero.
@@ -402,7 +404,9 @@ function FalhaDeCarga({ mensagem, aoTentar }: { mensagem: string; aoTentar: () =
 }
 
 /** CBS + IBS estadual + IBS municipal (pontos percentuais) do local da empresa; sem local ou sem resposta, a referência de 2027. */
-async function aliquotaNominalDaEmpresa(vendas: ResultadoLeitura['documentos']): Promise<Big> {
+async function aliquotaNominalDaEmpresa(
+  vendas: ResultadoLeitura['documentos'],
+): Promise<{ total: Big; origem: OrigemAliquotasNominais }> {
   const local = vendas.map((d) => d.emitente).find((e) => e.uf && e.municipioIbge);
   let n: AliquotasNominais = ALIQUOTAS_REFERENCIA_2027;
   if (local?.uf && local.municipioIbge) {
@@ -412,5 +416,5 @@ async function aliquotaNominalDaEmpresa(vendas: ResultadoLeitura['documentos']):
       n = ALIQUOTAS_REFERENCIA_2027;
     }
   }
-  return n.cbs.plus(n.ibsEstadual).plus(n.ibsMunicipal);
+  return { total: n.cbs.plus(n.ibsEstadual).plus(n.ibsMunicipal), origem: n.origem ?? 'REFERENCIA_2027' };
 }

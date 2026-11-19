@@ -121,7 +121,7 @@ describe('simular', () => {
   it('(d) compras ESTIMADA 40% → créditos = faturamento × 40% × alíquota nominal', () => {
     // 1000 × 40% × 26,5% = 106; regular 60 + 100 − 106 = 54.
     const r = simular(
-      entrada([venda('A')], { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('26.5') }),
+      entrada([venda('A')], { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('26.5'), origemAliquota: 'REFERENCIA_2027' }),
     );
     expect(r.origemCompras).toBe('ESTIMADA');
     expect(r.regular.impostoMes.toString()).toBe('54');
@@ -307,9 +307,41 @@ describe('simular', () => {
     });
 
     it('compras estimadas não têm período próprio', () => {
-      const r = simular(entrada([venda('A')], { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('26.5') }));
+      const r = simular(entrada([venda('A')], { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('26.5'), origemAliquota: 'REFERENCIA_2027' }));
       expect(r.mesesCompras).toEqual([]);
       expect(r.periodoComprasDiferente).toBe(false);
+    });
+  });
+
+  describe('como chegamos aqui (origem dos números do Resumo)', () => {
+    it('atividades usadas, com os tipos de nota e as alíquotas do Simples', () => {
+      const nfse = venda('S', { tipo: 'NFSE', tpDoc: 91 });
+      const aliq = { ...ALIQ, '07': { ...ALIQ['01'], anexo: 'III' as const, faixa: 3 } };
+      const r = simular({
+        ...entrada([venda('A'), venda('C', { tipo: 'NFCE', tpDoc: 65 }), nfse], real('0')),
+        atividadePorTipo: { NFE: '01', NFCE: '01', NFSE: '07' },
+        aliquotasPorAtividade: aliq,
+      });
+      expect(r.atividades.map((a) => [a.cAtivSN, a.tipos, a.aliquotas.anexo])).toEqual([
+        ['01', ['NFE', 'NFCE'], 'I'],
+        ['07', ['NFSE'], 'III'],
+      ]);
+    });
+
+    it('alíquotas nominais distintas usadas por fora, com a origem; créditos REAL com a proporção aplicada', () => {
+      const nominais = { cbs: Big('8.8'), ibsEstadual: Big('0.05'), ibsMunicipal: Big('0.05'), origem: 'REFERENCIA_2027' as const };
+      const a = venda('A', { itens: [item(1, '700'), item(2, '300')] });
+      const r = simular({
+        ...entrada([a, venda('B')], real('100')),
+        porFora: [
+          { ...calc('A', 1, FORA), aliquotasNominais: nominais },
+          calc('A', 2, FORA, 'FALHA_TECNICA'),
+          { ...calc('B', 1, FORA), aliquotasNominais: { ...nominais } },
+        ],
+      });
+      expect(r.aliquotasNominais).toHaveLength(1);
+      expect(r.aliquotasNominais[0].origem).toBe('REFERENCIA_2027');
+      expect(r.proporcaoCreditos?.toString()).toBe('0.85'); // 1700 de 2000
     });
   });
 });

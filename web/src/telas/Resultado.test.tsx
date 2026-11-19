@@ -22,6 +22,9 @@ const SIMULACAO: ResultadoSimulacao = {
   notas2026Simuladas: false,
   itensExcluidos: 1,
   itensSemReceita: 0,
+  atividades: [],
+  aliquotasNominais: [],
+  estimativa: { percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('8.9'), origemAliquota: 'REFERENCIA_2027' },
 };
 
 const linha = (item: number, achado: LinhaAuditoria['achado']): LinhaAuditoria => ({

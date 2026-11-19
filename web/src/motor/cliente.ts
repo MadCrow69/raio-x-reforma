@@ -32,6 +32,7 @@ export const ALIQUOTAS_REFERENCIA_2027: Readonly<AliquotasNominais> = {
   cbs: Big('8.8'),
   ibsEstadual: Big('0.05'),
   ibsMunicipal: Big('0.05'),
+  origem: 'REFERENCIA_2027',
 };
 
 const BASE_DADOS_ABERTOS = '/motor/regular/api/calculadora/dados-abertos';
@@ -60,7 +61,7 @@ export function buscarAliquotasNominais(uf: string, municipioIbge: string, data:
       aliquotaReferencia(`${BASE_DADOS_ABERTOS}/aliquota-uf?codigoUf=${codigoUf}&data=${data}`),
       aliquotaReferencia(`${BASE_DADOS_ABERTOS}/aliquota-municipio?codigoMunicipio=${municipioIbge}&data=${data}`),
     ])
-      .then(([cbs, ibsEstadual, ibsMunicipal]) => ({ cbs, ibsEstadual, ibsMunicipal }))
+      .then(([cbs, ibsEstadual, ibsMunicipal]): AliquotasNominais => ({ cbs, ibsEstadual, ibsMunicipal, origem: 'DADOS_ABERTOS' }))
       .catch(() => ({ ...ALIQUOTAS_REFERENCIA_2027 }));
     cacheAliquotas.set(chave, pendente);
   }
@@ -77,7 +78,7 @@ function item(
   numero: number,
   estado: EstadoItem,
   erros: ErroMotor[],
-  extra: Partial<Pick<ItemCalculado, 'vCBS' | 'vIBSUF' | 'vIBSMun' | 'memoria' | 'origemMemoria'>> = {},
+  extra: Partial<Pick<ItemCalculado, 'vCBS' | 'vIBSUF' | 'vIBSMun' | 'memoria' | 'origemMemoria' | 'aliquotasNominais'>> = {},
 ): ItemCalculado {
   return { chave: doc.chave, numero, estado, vCBS: zero(), vIBSUF: zero(), vIBSMun: zero(), erros, memoria: '', ...extra };
 }
@@ -113,7 +114,7 @@ function mapearSimples(doc: Documento, o: ObjetoSimplesJson): ItemCalculado {
   return item(doc, o.nObj, estado, erros, { vCBS: dec(t.vCBSSN), vIBSUF, vIBSMun: dec(t.vIBSMun), memoria, origemMemoria: 'COMPOSTA' });
 }
 
-function mapearRegular(doc: Documento, o: ObjetoRegularJson): ItemCalculado {
+function mapearRegular(doc: Documento, o: ObjetoRegularJson, aliquotasNominais: AliquotasNominais): ItemCalculado {
   const estado = normalizarEstado(o.estadoItem);
   const erros = (o.erros ?? []).map(paraErro);
   const g = o.tribCalc?.IBSCBS?.gIBSCBS;
@@ -125,6 +126,7 @@ function mapearRegular(doc: Documento, o: ObjetoRegularJson): ItemCalculado {
     vIBSMun: dec(g.gIBSMun?.vIBSMun),
     memoria,
     origemMemoria: memoria ? 'MOTOR' : undefined,
+    ...(estado === 'CALCULO_SIMULADO' ? { aliquotasNominais } : {}),
   });
 }
 
@@ -163,7 +165,7 @@ async function calcularDocumento(doc: Documento, cenario: Cenario, p: Parametros
     const calculados = req.numerosEnviados.map((n) => {
       const o = json.objetos.find((x) => x.nObj === n);
       if (!o) return item(doc, n, 'FALHA_TECNICA', [{ ...ERRO_TECNICO, detail: 'Resposta do motor sem este item' }]);
-      return simples ? mapearSimples(doc, o as ObjetoSimplesJson) : mapearRegular(doc, o as ObjetoRegularJson);
+      return simples ? mapearSimples(doc, o as ObjetoSimplesJson) : mapearRegular(doc, o as ObjetoRegularJson, nominais);
     });
     return [...calculados, ...req.naoEnviados];
   } catch (e) {

@@ -415,6 +415,7 @@ describe('Confirmar — calcular', () => {
     if (r.origemCompras.tipo === 'ESTIMADA') {
       expect(r.origemCompras.percentualSobreFaturamento.eq(40)).toBe(true);
       expect(r.origemCompras.aliquotaNominalTotal.eq('8.9')).toBe(true);
+      expect(r.origemCompras.origemAliquota).toBe('REFERENCIA_2027');
     }
   });
 

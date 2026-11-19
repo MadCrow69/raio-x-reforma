@@ -53,7 +53,7 @@ function motorFalso(valores: Partial<Record<Cenario, [string, string, string]>>,
   });
 }
 
-const ESTIMADA: OrigemCompras = { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('8.9') };
+const ESTIMADA: OrigemCompras = { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('8.9'), origemAliquota: 'REFERENCIA_2027' };
 const REAL: OrigemCompras = { tipo: 'REAL', creditos: Big(0), meses: [] };
 
 describe('analisar', () => {

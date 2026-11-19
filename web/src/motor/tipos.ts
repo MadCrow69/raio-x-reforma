@@ -3,11 +3,16 @@ import type { Classificacoes } from '../classificacao/sugestoes';
 import type { TipoDocumento } from '../leitura/tipos';
 import type { AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
 
+/** De onde vieram as alíquotas nominais: rotas de dados abertos do motor ou a referência de 2027 (LC 214) do app. */
+export type OrigemAliquotasNominais = 'DADOS_ABERTOS' | 'REFERENCIA_2027';
+
 /** Alíquotas nominais em pontos percentuais (ex.: cbs 8.8 = 8,8%), como no corpo do motor regular. */
 export interface AliquotasNominais {
   cbs: Big;
   ibsEstadual: Big;
   ibsMunicipal: Big;
+  /** Só informativo (Resumo, "Como chegamos aqui"); não muda o cálculo. */
+  origem?: OrigemAliquotasNominais;
 }
 
 export interface ParametrosCalculo {
@@ -46,6 +51,8 @@ export interface ItemCalculado {
   memoria: string;
   /** Ausente quando não há memória. */
   origemMemoria?: OrigemMemoria;
+  /** Só no motor regular e item calculado: alíquotas nominais enviadas (com a origem). */
+  aliquotasNominais?: AliquotasNominais;
 }
 
 export type Cenario = 'SIMPLES_POR_DENTRO' | 'SIMPLES_POR_FORA' | 'REGULAR_AUDITORIA';

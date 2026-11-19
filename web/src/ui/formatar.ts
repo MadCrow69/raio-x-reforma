@@ -45,6 +45,13 @@ export function formatarNumeroBR(v: Big): string {
   return `${inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${decimais}`;
 }
 
+/** Pontos percentuais → "8,8%", "0,05%", "7,33%": até `casas` decimais, sem zeros à direita. */
+export function formatarPercentual(v: Big, casas = 2): string {
+  const [inteiro, decimais = ''] = v.round(casas).toFixed(casas).split('.');
+  const resto = decimais.replace(/0+$/, '');
+  return `${inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}${resto ? `,${resto}` : ''}%`;
+}
+
 /** Big → "R$ 1.234,50"; negativo → "-R$ 1.234,50" (zero arredondado não leva sinal). */
 export const formatarMoeda = (v: Big): string =>
   v.round(2).lt(0) ? `-R$ ${formatarNumeroBR(v.abs())}` : `R$ ${formatarNumeroBR(v.abs())}`;

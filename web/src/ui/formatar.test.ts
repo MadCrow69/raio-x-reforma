@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { contar, formatarCnpj, formatarMeses, formatarPeriodo } from './formatar';
+import Big from 'big.js';
+import { contar, formatarCnpj, formatarMeses, formatarPercentual, formatarPeriodo } from './formatar';
 
 describe('formatar', () => {
   it('contar usa singular só para 1 e separa milhar', () => {
@@ -24,5 +25,14 @@ describe('formatar', () => {
     expect(formatarCnpj('11222333000181')).toBe('11.222.333/0001-81');
     expect(formatarCnpj('12ABC34501DE35')).toBe('12.ABC.345/01DE-35');
     expect(formatarCnpj('123')).toBe('123');
+  });
+
+  it('formatarPercentual: vírgula, até 2 casas (ou as pedidas), sem zeros à direita', () => {
+    expect(formatarPercentual(Big('8.8'))).toBe('8,8%');
+    expect(formatarPercentual(Big('0.05'))).toBe('0,05%');
+    expect(formatarPercentual(Big('7.33456'))).toBe('7,33%');
+    expect(formatarPercentual(Big('2.75'), 4)).toBe('2,75%');
+    expect(formatarPercentual(Big('0.12345'), 4)).toBe('0,1235%');
+    expect(formatarPercentual(Big(100))).toBe('100%');
   });
 });

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import Big from 'big.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ResultadoSimulacao } from '../simulacao/simular';
@@ -23,6 +23,14 @@ function simulacao(extra: Partial<ResultadoSimulacao> = {}): ResultadoSimulacao 
     notas2026Simuladas: false,
     itensExcluidos: 0,
     itensSemReceita: 0,
+    atividades: [
+      {
+        cAtivSN: '01',
+        tipos: ['NFE', 'NFCE'],
+        aliquotas: { anexo: 'I', faixa: 3, efetivaTotal: Big('9.5'), pCBSSN: Big('2.75'), pIBSSN: Big('1.25'), dasSemCbsIbs: Big('5.5') },
+      },
+    ],
+    aliquotasNominais: [{ cbs: Big('8.8'), ibsEstadual: Big('0.05'), ibsMunicipal: Big('0.05'), origem: 'REFERENCIA_2027' }],
     ...extra,
   };
 }
@@ -71,7 +79,7 @@ describe('Resumo', () => {
   it('selo de origem das compras e período analisado', () => {
     const { rerender } = render(<Resumo simulacao={simulacao()} />);
     expect(screen.getByText(/compras reais/)).toBeTruthy();
-    expect(screen.getByText(/mar–mai\/2027/)).toBeTruthy();
+    expect(screen.getByText(/compras reais · .*mar–mai\/2027/)).toBeTruthy();
     rerender(<Resumo simulacao={simulacao({ origemCompras: 'ESTIMADA' })} />);
     expect(screen.getByText(/compras estimadas/)).toBeTruthy();
   });
@@ -164,5 +172,42 @@ describe('Resumo', () => {
     ).toBeTruthy();
     rerender(<Resumo simulacao={simulacao()} />);
     expect(screen.queryByText(/período das compras/)).toBeNull();
+  });
+
+  describe('Como chegamos aqui', () => {
+    const secao = () => screen.getByRole('region', { name: 'Como chegamos aqui' });
+
+    it('mostra atividade (anexo, faixa, alíquota efetiva, CBS/IBS no DAS), meses, faturamento, créditos e alíquotas nominais com origem', () => {
+      render(<Resumo simulacao={simulacao()} />);
+      const s = within(secao());
+      expect(s.getByText('Atividade 01 · NF-e e NFC-e')).toBeTruthy();
+      expect(s.getByText('Anexo I, 3ª faixa · alíquota efetiva total 9,5% · CBS 2,75% e IBS 1,25% dentro do DAS')).toBeTruthy();
+      expect(s.getByText('Meses das vendas')).toBeTruthy();
+      expect(s.getByText('Meses das compras')).toBeTruthy();
+      expect(s.getAllByText('mar–mai/2027 (3 meses)')).toHaveLength(2);
+      expect(s.getByText('Faturamento por mês')).toBeTruthy();
+      expect(s.getByText('R$ 50.000,00')).toBeTruthy();
+      expect(s.getByText('Créditos das compras por mês')).toBeTruthy();
+      expect(s.getByText('R$ 800,00')).toBeTruthy();
+      expect(s.getByText(/Reais: IBS\/CBS das notas de compra .* 100% \(proporção da receita incluída\) ÷ 3 meses de compras/)).toBeTruthy();
+      expect(s.getByText('Alíquotas nominais do regime regular')).toBeTruthy();
+      expect(s.getByText('CBS 8,8% · IBS estadual 0,05% · IBS municipal 0,05% · referência 2027 (LC 214)')).toBeTruthy();
+    });
+
+    it('compras estimadas explicam a estimativa e não mostram meses de compras', () => {
+      render(
+        <Resumo
+          simulacao={simulacao({
+            origemCompras: 'ESTIMADA',
+            mesesCompras: [],
+            proporcaoCreditos: undefined,
+            estimativa: { percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('8.9'), origemAliquota: 'DADOS_ABERTOS' },
+          })}
+        />,
+      );
+      const s = within(secao());
+      expect(s.queryByText('Meses das compras')).toBeNull();
+      expect(s.getByText('Estimados: 40% do faturamento × alíquota nominal 8,9% (dados abertos da calculadora oficial)')).toBeTruthy();
+    });
   });
 });

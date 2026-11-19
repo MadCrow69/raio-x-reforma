@@ -1,5 +1,5 @@
 import type { MotivoIgnorado, TipoDocumento } from '../leitura/tipos';
-import type { EstadoItem } from '../motor/tipos';
+import type { EstadoItem, OrigemAliquotasNominais } from '../motor/tipos';
 
 export type Achado =
   | 'OK'
@@ -51,3 +51,9 @@ export const ROTULO_ORIGEM_MEMORIA = {
   MOTOR: 'Memória do motor oficial',
   COMPOSTA: 'Composta pelo Raio-X a partir da resposta do motor',
 } as const;
+
+/** De onde vieram as alíquotas nominais do regime regular (Resumo, "Como chegamos aqui"). */
+export const ROTULO_ORIGEM_ALIQUOTAS: Record<OrigemAliquotasNominais, string> = {
+  DADOS_ABERTOS: 'dados abertos da calculadora oficial',
+  REFERENCIA_2027: 'referência 2027 (LC 214)',
+};

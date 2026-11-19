@@ -43,6 +43,24 @@ describe('Memoria', () => {
     expect(within(compra).getByText('Memória do motor oficial')).toBeTruthy();
   });
 
+  it('venda mostra as duas memórias: Simples (composta pelo Raio-X) e regime regular (motor oficial)', () => {
+    const venda = linha(0, { memoriaRegular: 'Tributação integral: CBS 8,8%', origemMemoriaRegular: 'MOTOR' });
+    render(<Memoria linhas={[venda]} foco={null} aoLimparFoco={() => {}} />);
+    const simples = screen.getByRole('region', { name: 'Simples (IBS/CBS no DAS)' });
+    expect(within(simples).getByText('Composta pelo Raio-X a partir da resposta do motor')).toBeTruthy();
+    expect(within(simples).getByText('memória do item 0')).toBeTruthy();
+    const regular = screen.getByRole('region', { name: 'Regime regular (IBS/CBS por fora)' });
+    expect(within(regular).getByText('Memória do motor oficial')).toBeTruthy();
+    expect(within(regular).getByText('Tributação integral: CBS 8,8%')).toBeTruthy();
+  });
+
+  it('busca também no texto da memória do regime regular', () => {
+    const venda = linha(0, { memoriaRegular: 'Tributação integral: CBS 8,8%', origemMemoriaRegular: 'MOTOR' });
+    render(<Memoria linhas={[venda, linha(2)]} foco={null} aoLimparFoco={() => {}} />);
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'tributacao integral' } });
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+  });
+
   it('lê a origem declarada no item, não o papel; sem origem, não rotula', () => {
     const invertida = linha(0, { origemMemoria: 'MOTOR' }); // venda cuja memória veio do motor
     const sem = linha(2, { origemMemoria: undefined });

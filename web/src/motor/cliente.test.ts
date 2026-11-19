@@ -24,6 +24,7 @@ describe('buscarAliquotasNominais', () => {
     fetchMock.mockResolvedValue(resposta({ title: 'Alíquota não encontrada' }, 404));
     const a = await buscarAliquotasNominais('RS', '4314902', '2027-03-15');
     expect(a.cbs.eq(ALIQUOTAS_REFERENCIA_2027.cbs)).toBe(true);
+    expect(a.origem).toBe('REFERENCIA_2027');
     expect(ALIQUOTAS_REFERENCIA_2027.cbs.toString()).toBe('8.8');
     const chamadas = fetchMock.mock.calls.length;
     await buscarAliquotasNominais('RS', '4314902', '2027-03-15');
@@ -38,6 +39,7 @@ describe('buscarAliquotasNominais', () => {
     });
     const a = await buscarAliquotasNominais('RS', '4314902', '2026-06-01');
     expect([a.cbs.toString(), a.ibsEstadual.toString(), a.ibsMunicipal.toString()]).toEqual(['0.9', '0.1', '0']);
+    expect(a.origem).toBe('DADOS_ABERTOS');
     expect(fetchMock.mock.calls.map((c) => c[0]).join()).toContain('codigoUf=43');
   });
 
@@ -85,6 +87,9 @@ describe('calcular', () => {
     expect(r[0].vIBSMun.toString()).toBe('0.48');
     expect(r[0].memoria).toContain('Tributação integral');
     expect(r[0].origemMemoria).toBe('MOTOR');
+    // as alíquotas nominais usadas (e de onde vieram) acompanham o item calculado no regime regular
+    expect(r[0].aliquotasNominais?.cbs.toString()).toBe('8.8');
+    expect(r[0].aliquotasNominais?.origem).toBe('REFERENCIA_2027');
     const post = fetchMock.mock.calls.find((c) => String(c[0]).includes('regime-geral'))!;
     expect(JSON.parse(post[1].body).itens[0].aliquotasNominais.cbs).toBe(8.8);
   });

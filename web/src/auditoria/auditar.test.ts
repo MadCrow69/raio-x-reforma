@@ -114,6 +114,16 @@ describe('auditar', () => {
       const [l] = auditar([doc([item(1)])], [], [calc(1, ['0.9', '0.1', '0'])], {}, [calc(1, ['0', '0', '0'], { estado: 'FALHA_TECNICA' })]);
       expect(l.achado).toBe('NAO_CALCULADO');
     });
+    it('venda leva também a memória do regime regular (porFora), com a origem; compra não', () => {
+      const regular = calc(1, ['9', '1', '0'], { memoria: 'memória regular', origemMemoria: 'MOTOR' });
+      const [v] = auditar([doc([item(1)])], [], [calc(1, ['0.9', '0.1', '0'], { origemMemoria: 'COMPOSTA' })], {}, [regular]);
+      expect(v.memoria).toBe('mem');
+      expect(v.origemMemoria).toBe('COMPOSTA');
+      expect(v.memoriaRegular).toBe('memória regular');
+      expect(v.origemMemoriaRegular).toBe('MOTOR');
+      const [c] = auditar([], [doc([item(1)])], [calc(1, ['0.9', '0.1', '0'])], {}, [regular]);
+      expect(c.memoriaRegular).toBeUndefined();
+    });
     it('venda validada nos dois motores segue pela comparação de valores', () => {
       const [l] = auditar([doc([item(1, ['0.9', '0.1', '0'])])], [], [calc(1, ['0.9', '0.1', '0'])], {}, [calc(1, ['9', '1', '0'])]);
       expect(l.achado).toBe('OK');

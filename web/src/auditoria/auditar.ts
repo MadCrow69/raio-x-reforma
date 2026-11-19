@@ -27,6 +27,9 @@ export interface LinhaAuditoria {
   memoria: string;
   /** Quem escreveu a memória; ausente = sem origem declarada (a tela não rotula). */
   origemMemoria?: OrigemMemoria;
+  /** Só nas vendas: memória do mesmo item no regime regular (cenário por fora), além da do Simples em `memoria`. */
+  memoriaRegular?: string;
+  origemMemoriaRegular?: OrigemMemoria;
 }
 
 export const TOLERANCIA = Big('0.01'); // por tributo, em R$
@@ -91,6 +94,7 @@ function linhasDe(
         diferenca,
         memoria: c?.memoria ?? '',
         origemMemoria: c?.origemMemoria,
+        ...(v?.memoria ? { memoriaRegular: v.memoria, origemMemoriaRegular: v.origemMemoria } : {}),
       });
     }
   }

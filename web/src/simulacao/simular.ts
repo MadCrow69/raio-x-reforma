@@ -4,7 +4,7 @@ import { calc } from '../dominio/decimal';
 import { participacaoPJ } from '../dominio/separar';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
 import { emitidoAntesDoAnoSimulado } from '../motor/montarRequisicoes';
-import { chaveItem, type ItemCalculado } from '../motor/tipos';
+import { chaveItem, type AliquotasNominais, type ItemCalculado, type OrigemAliquotasNominais } from '../motor/tipos';
 import type { AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
 
 /*
@@ -15,7 +15,21 @@ import type { AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
 
 export type OrigemCompras =
   | { tipo: 'REAL'; creditos: Big; /** 'AAAA-MM' distintos da emissão das compras (divisor da média mensal dos créditos). */ meses: string[] }
-  | { tipo: 'ESTIMADA'; percentualSobreFaturamento: Big; aliquotaNominalTotal: Big /* cbs+ibsEstadual+ibsMunicipal, em pontos */ };
+  | {
+      tipo: 'ESTIMADA';
+      percentualSobreFaturamento: Big;
+      /** cbs + ibsEstadual + ibsMunicipal, em pontos. */
+      aliquotaNominalTotal: Big;
+      /** De onde veio a alíquota nominal (só informativo, para o Resumo). */
+      origemAliquota: OrigemAliquotasNominais;
+    };
+
+/** Atividade do Simples efetivamente usada (com receita incluída) e os tipos de nota em que foi usada. */
+export interface AtividadeUsada {
+  cAtivSN: string;
+  tipos: TipoDocumento[];
+  aliquotas: AliquotasSimples;
+}
 
 export interface ResultadoCenario {
   impostoMes: Big;
@@ -49,6 +63,12 @@ export interface ResultadoSimulacao {
   itensExcluidos: number;
   /** Itens de saída sem receita (CFOP de transferência/remessa, `dominio/cfop.ts`): fora do faturamento e de tudo mais. */
   itensSemReceita: number;
+  /** Atividades do Simples com receita incluída, na ordem em que aparecem nas vendas. */
+  atividades: AtividadeUsada[];
+  /** Conjuntos distintos de alíquotas nominais usados no cenário por fora (com a origem de cada um). */
+  aliquotasNominais: AliquotasNominais[];
+  /** Só em compras ESTIMADA: os parâmetros da estimativa (Resumo, "Como chegamos aqui"). */
+  estimativa?: Omit<Extract<OrigemCompras, { tipo: 'ESTIMADA' }>, 'tipo'>;
 }
 
 export interface EntradaSimulacao {
@@ -98,6 +118,8 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
   let itensSemReceita = 0;
   const vendasIncluidas: Documento[] = [];
   const mesesIncluidos = new Set<string>();
+  const atividades = new Map<string, AtividadeUsada>();
+  const nominaisUsadas = new Map<string, AliquotasNominais>();
 
   for (const v of vendas) {
     const cAtivSN = atividadePorTipo[v.tipo];
@@ -118,6 +140,13 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
         return false;
       }
       receita = receita.plus(it.baseCalculo);
+      const usada = atividades.get(cAtivSN!) ?? { cAtivSN: cAtivSN!, tipos: [], aliquotas };
+      if (!usada.tipos.includes(v.tipo)) usada.tipos.push(v.tipo);
+      atividades.set(cAtivSN!, usada);
+      if (f.aliquotasNominais) {
+        const n = f.aliquotasNominais;
+        nominaisUsadas.set([n.cbs, n.ibsEstadual, n.ibsMunicipal, n.origem].join('|'), n);
+      }
       dasCompleto = dasCompleto.plus(pontos(it.baseCalculo, aliquotas.efetivaTotal));
       dasSemCbsIbs = dasSemCbsIbs.plus(pontos(it.baseCalculo, aliquotas.dasSemCbsIbs));
       debitosPorFora = debitosPorFora.plus(total(f));
@@ -174,5 +203,16 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
     notas2026Simuladas: vendas.some((v) => emitidoAntesDoAnoSimulado(v.emissao)),
     itensExcluidos,
     itensSemReceita,
+    atividades: [...atividades.values()],
+    ...(origemCompras.tipo === 'ESTIMADA'
+      ? {
+          estimativa: {
+            percentualSobreFaturamento: origemCompras.percentualSobreFaturamento,
+            aliquotaNominalTotal: origemCompras.aliquotaNominalTotal,
+            origemAliquota: origemCompras.origemAliquota,
+          },
+        }
+      : {}),
+    aliquotasNominais: [...nominaisUsadas.values()],
   };
 }

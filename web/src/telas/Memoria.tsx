@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { LinhaAuditoria } from '../auditoria/auditar';
+import type { OrigemMemoria } from '../motor/tipos';
 import { ROTULO_ORIGEM_MEMORIA, ROTULO_PAPEL } from '../auditoria/rotulos';
 import { TAMANHO_PADRAO, TAMANHOS_PAGINA, idLinha, mesmoFoco, normalizar, type FocoMemoria } from '../auditoria/tabela';
 import Botao from '../ui/componentes/Botao';
@@ -15,8 +16,29 @@ export interface MemoriaProps {
   aoLimparFoco: () => void;
 }
 
+/** Um texto de memória com o cenário (quando a linha tem dois) e a origem sempre explícita. */
+function Bloco({ cenario, texto, origem }: { cenario?: string; texto: string; origem?: OrigemMemoria }) {
+  const conteudo = (
+    <>
+      {cenario && <h4 className="memoria__cenario">{cenario}</h4>}
+      {origem && <p className={`memoria__origem memoria__origem--${origem.toLowerCase()}`}>{ROTULO_ORIGEM_MEMORIA[origem]}</p>}
+      <pre className="memoria__texto">{texto}</pre>
+    </>
+  );
+  return cenario ? (
+    <section className="memoria__bloco" aria-label={cenario}>
+      {conteudo}
+    </section>
+  ) : (
+    conteudo
+  );
+}
+
+const CENARIO_SIMPLES = 'Simples (IBS/CBS no DAS)';
+const CENARIO_REGULAR = 'Regime regular (IBS/CBS por fora)';
+
 function Item({ l }: { l: LinhaAuditoria }) {
-  const origem = l.origemMemoria;
+  const regular = l.memoriaRegular;
   return (
     <article className="memoria__item" aria-label={`Memória de cálculo do item ${l.item} da nota ${l.numeroNota}`}>
       <header className="memoria__topo">
@@ -25,11 +47,14 @@ function Item({ l }: { l: LinhaAuditoria }) {
       </header>
       <p className="memoria__descricao">{l.descricao}</p>
       <p className="memoria__meta">{[ROTULO_PAPEL[l.papel], l.ncmOuNbs && `NCM/NBS ${l.ncmOuNbs}`].filter(Boolean).join(' · ')}</p>
-      {l.memoria !== '' ? (
+      {regular ? (
+        // Venda: as duas memórias, cada uma com o cenário e quem a escreveu.
         <>
-          {origem && <p className={`memoria__origem memoria__origem--${origem.toLowerCase()}`}>{ROTULO_ORIGEM_MEMORIA[origem]}</p>}
-          <pre className="memoria__texto">{l.memoria}</pre>
+          {l.memoria !== '' && <Bloco cenario={CENARIO_SIMPLES} texto={l.memoria} origem={l.origemMemoria} />}
+          <Bloco cenario={CENARIO_REGULAR} texto={regular} origem={l.origemMemoriaRegular} />
         </>
+      ) : l.memoria !== '' ? (
+        <Bloco texto={l.memoria} origem={l.origemMemoria} />
       ) : (
         <div className="memoria__sem">
           <p>O motor não devolveu memória de cálculo para este item.</p>
@@ -55,10 +80,13 @@ export default function Memoria({ linhas, foco, aoLimparFoco }: MemoriaProps) {
   const [tamanho, setTamanho] = useState<number>(TAMANHO_PADRAO);
   const [pagina, setPagina] = useState(1);
 
-  const comMemoria = useMemo(() => linhas.filter((l) => l.memoria !== ''), [linhas]);
+  const comMemoria = useMemo(() => linhas.filter((l) => l.memoria !== '' || !!l.memoriaRegular), [linhas]);
   const q = normalizar(busca.trim());
   const filtradas = useMemo(
-    () => (q ? comMemoria.filter((l) => [l.numeroNota, l.descricao, l.memoria].some((t) => normalizar(t).includes(q))) : comMemoria),
+    () =>
+      q
+        ? comMemoria.filter((l) => [l.numeroNota, l.descricao, l.memoria, l.memoriaRegular ?? ''].some((t) => normalizar(t).includes(q)))
+        : comMemoria,
     [comMemoria, q],
   );
   const paginas = Math.max(1, Math.ceil(filtradas.length / tamanho));
