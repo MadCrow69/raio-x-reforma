@@ -145,23 +145,64 @@ describe('simular', () => {
         entrada(
           [
             venda('J'),
-            venda('F', { emissao: '2027-02-10T10:00:00-03:00', itens: [] }),
-            venda('M', { emissao: '2027-03-10T10:00:00-03:00', itens: [] }),
+            venda('F', { emissao: '2027-02-10T10:00:00-03:00' }),
+            venda('M', { emissao: '2027-03-10T10:00:00-03:00', itens: [item(1, '2000')] }),
           ],
           real('0'),
         ),
       );
+      // 4000 ÷ 3
       expect(r.meses).toHaveLength(3);
-      expect(r.faturamentoMes.toString()).toBe(`333.${'3'.repeat(40)}`);
+      expect(r.faturamentoMes.toString()).toBe(`1333.${'3'.repeat(40)}`);
     } finally {
       Big.DP = dpGlobal;
     }
   });
 
-  it('(f) nota emitida em 2026 → notas2026Simuladas e mês levado a 2027', () => {
+  it('(f) nota emitida em 2026 → notas2026Simuladas; meses mostram o mês real da emissão', () => {
     const r = simular(entrada([venda('A', { emissao: '2026-03-15T10:00:00-03:00' })], real('80')));
     expect(r.notas2026Simuladas).toBe(true);
-    expect(r.meses).toEqual(['2027-03']);
+    expect(r.meses).toEqual(['2026-03']);
+  });
+
+  it('13 meses seguidos (nov/2025 a nov/2026) contam 13 meses, sem juntar os dois novembros', () => {
+    const vendas = Array.from({ length: 13 }, (_, i) => {
+      const mes = new Date(Date.UTC(2025, 10 + i, 10)).toISOString().slice(0, 7);
+      return venda(`V${i}`, { emissao: `${mes}-10T10:00:00-03:00` });
+    });
+    const r = simular(entrada(vendas, real('0')));
+    expect(r.meses).toHaveLength(13);
+    expect(r.meses[0]).toBe('2025-11');
+    expect(r.meses[12]).toBe('2026-11');
+    expect(r.faturamentoMes.toString()).toBe('1000');
+    expect(r.simples.impostoMes.toString()).toBe('100');
+  });
+
+  it('mês cujas vendas ficaram todas de fora não entra na média', () => {
+    const fev = venda('F', { emissao: '2027-02-10T10:00:00-03:00' });
+    const r = simular({ ...entrada([venda('J'), fev], real('0')), porFora: [calc('J', 1, FORA)] });
+    expect(r.meses).toEqual(['2027-01']);
+    expect(r.faturamentoMes.toString()).toBe('1000');
+    expect(r.itensExcluidos).toBe(1);
+  });
+
+  it('créditos REAL proporcionais à receita incluída (30% da receita excluída)', () => {
+    // Item 1 (700) incluído, item 2 (300) com falha no motor por fora: créditos 100 × 700/1000 = 70.
+    // Simples 700 × 10% = 70; regular 700 × 6% + 100 − 70 = 72.
+    const a = venda('A', { itens: [item(1, '700'), item(2, '300')] });
+    const r = simular({
+      ...entrada([a], real('100')),
+      porFora: [calc('A', 1, FORA), calc('A', 2, FORA, 'FALHA_TECNICA')],
+    });
+    expect(r.itensExcluidos).toBe(1);
+    expect(r.simples.impostoMes.toString()).toBe('70');
+    expect(r.regular.impostoMes.toString()).toBe('72');
+  });
+
+  it('nenhum item calculado nos dois cenários → erro (sem base para comparar), mesmo com créditos', () => {
+    const e = { ...entrada([venda('A')], real('500')), porFora: [calc('A', 1, FORA, 'FALHA_TECNICA')] };
+    expect(() => simular(e)).toThrow(RangeError);
+    expect(() => simular(e)).toThrow('Nenhum item foi calculado nos dois cenários; não há base para comparar.');
   });
 
   it('créditos maiores que os débitos → imposto do regular negativo (saldo credor), sem piso em 0', () => {
@@ -199,9 +240,9 @@ describe('simular', () => {
   });
 
   it('atividade sem alíquota calculada também exclui o item', () => {
-    const r = simular({ ...entrada([venda('A')], real('0')), atividadePorTipo: { NFE: '99' } });
+    const r = simular({ ...entrada([venda('A'), venda('S', { tipo: 'NFSE', tpDoc: 91 })], real('0')), atividadePorTipo: { NFE: '01', NFSE: '99' } });
     expect(r.itensExcluidos).toBe(1);
-    expect(r.faturamentoMes.toString()).toBe('0');
+    expect(r.faturamentoMes.toString()).toBe('1000');
   });
 
   it('sem vendas a PJ: crédito 0 nos dois cenários e o custo decide', () => {

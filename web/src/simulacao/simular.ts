@@ -2,7 +2,7 @@ import Big from 'big.js';
 import { calc } from '../dominio/decimal';
 import { participacaoPJ } from '../dominio/separar';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
-import { ANO_SIMULADO, dataEm2027 } from '../motor/montarRequisicoes';
+import { ANO_SIMULADO } from '../motor/montarRequisicoes';
 import { chaveItem, type ItemCalculado } from '../motor/tipos';
 import type { AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
 
@@ -24,6 +24,7 @@ export interface ResultadoCenario {
 export type Veredito = 'REGULAR_TENDE_MELHOR' | 'SIMPLES_TENDE_MELHOR' | 'DEPENDE_DOS_CLIENTES' | 'EMPATE';
 
 export interface ResultadoSimulacao {
+  /** 'AAAA-MM' reais da emissão (não levados a 2027) das vendas com ao menos um item incluído. */
   meses: string[];
   faturamentoMes: Big;
   simples: ResultadoCenario;
@@ -70,13 +71,13 @@ function decidir(diferencaMes: Big, simples: ResultadoCenario, regular: Resultad
 
 export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
   const { vendas, porDentro, porFora, atividadePorTipo, aliquotasPorAtividade, origemCompras } = entrada;
-  const meses = [...new Set(vendas.map((v) => dataEm2027(v.emissao).slice(0, 7)))].sort();
-  if (meses.length === 0) throw new RangeError('Não há notas de venda para simular: sem mês para calcular a média mensal.');
+  if (vendas.length === 0) throw new RangeError('Não há notas de venda para simular: sem mês para calcular a média mensal.');
 
   const dentro = new Map(porDentro.map((c) => [chaveItem(c.chave, c.numero), c]));
   const fora = new Map(porFora.map((c) => [chaveItem(c.chave, c.numero), c]));
 
   let receita = Big(0);
+  let receitaTotal = Big(0);
   let dasCompleto = Big(0);
   let dasSemCbsIbs = Big(0);
   let debitosPorFora = Big(0);
@@ -84,11 +85,13 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
   let creditoPJFora = Big(0);
   let itensExcluidos = 0;
   const vendasIncluidas: Documento[] = [];
+  const mesesIncluidos = new Set<string>();
 
   for (const v of vendas) {
     const cAtivSN = atividadePorTipo[v.tipo];
     const aliquotas = cAtivSN ? aliquotasPorAtividade[cAtivSN] : undefined;
     const itens = v.itens.filter((it) => {
+      receitaTotal = receitaTotal.plus(it.baseCalculo);
       const d = dentro.get(chaveItem(v.chave, it.numero));
       const f = fora.get(chaveItem(v.chave, it.numero));
       if (!aliquotas || d?.estado !== 'CALCULO_SIMULADO' || f?.estado !== 'CALCULO_SIMULADO') {
@@ -106,13 +109,18 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
       return true;
     });
     vendasIncluidas.push({ ...v, itens });
+    // Mês real da emissão: levar a 2027 juntaria meses iguais de anos diferentes (nov/2025 e nov/2026).
+    if (itens.length > 0) mesesIncluidos.add(v.emissao.slice(0, 7));
   }
+  if (receita.eq(0)) throw new RangeError('Nenhum item foi calculado nos dois cenários; não há base para comparar.');
 
+  const meses = [...mesesIncluidos].sort();
   const n = meses.length;
   const faturamentoMes = porMes(receita, n);
+  // Créditos REAL vêm de todas as compras; só a fração da receita que entrou na comparação é usada.
   const creditosMes =
     origemCompras.tipo === 'REAL'
-      ? porMes(origemCompras.creditos, n)
+      ? porMes(Big(calc(origemCompras.creditos).times(receita).div(receitaTotal)), n)
       : Big(pontos(pontos(faturamentoMes, origemCompras.percentualSobreFaturamento), origemCompras.aliquotaNominalTotal));
 
   const simples: ResultadoCenario = { impostoMes: porMes(dasCompleto, n), creditoClientePJMes: porMes(creditoPJDentro, n) };
