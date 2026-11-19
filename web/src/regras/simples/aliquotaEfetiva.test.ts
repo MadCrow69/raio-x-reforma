@@ -6,6 +6,7 @@ import {
   SUBLIMITE,
   aliquotasSimples,
   anexoPorFatorR,
+  percentuaisPorTributo,
   type Anexo,
   type AliquotasSimples,
 } from './aliquotaEfetiva';
@@ -16,6 +17,17 @@ function ok(anexo: Anexo, rbt12: string): AliquotasSimples {
   const r = aliquotasSimples(anexo, Big(rbt12));
   if ('erro' in r) throw new Error(`erro inesperado: ${r.erro}`);
   return r;
+}
+
+function porTributo(anexo: Anexo, rbt12: string): Record<string, Big> {
+  const r = percentuaisPorTributo(anexo, Big(rbt12));
+  if ('erro' in r) throw new Error(`erro inesperado: ${r.erro}`);
+  return r.percentuais;
+}
+
+/** Igualdade até 1e-30 ponto, para resultados de dízima periódica (o cálculo usa 40 casas). */
+function quase(atual: Big, esperado: string) {
+  expect(atual.minus(esperado).abs().lt('1e-30'), `${atual.toString()} ≈ ${esperado}`).toBe(true);
 }
 
 /** Compara Big com valor exato (string), sem arredondar. */
@@ -159,6 +171,71 @@ describe('6ª faixa (RBT12 acima do sublimite): Resolução CGSN nº 140/2018, a
     igual(r.pIBSSN, '0.02059975');
     igual(r.efetivaTotal, '13.52996225'); // 9,45 + 4,0593625 + 0,02059975
     igual(r.dasSemCbsIbs, '10.2944725');
+  });
+
+  it('Anexo II, RBT12 = 4.000.000: ICMS e IBS pela 5ª faixa do próprio Anexo II (regra geral do art. 21, IV)', () => {
+    // A nota da 6ª faixa do Anexo II na Res. 190 traz para o ICMS os números do Anexo III (erro material);
+    // vale a regra geral: 5ª faixa do Anexo II (14,70%, R$ 85.500,00, ICMS 32,00%, IBS 0,15%).
+    // efetiva 6ª = 29,90 − 720.000 × 100 / 4.000.000 = 11,9%  → CBS = 11,9 × 25,22% = 3,00118
+    // efetiva 5ª = 14,70 − 85.500 × 100 / 4.000.000 = 12,5625% → ICMS = 12,5625 × 32% = 4,02
+    //                                                            IBS = 12,5625 × 0,15% = 0,01884375
+    const r = ok('II', '4000000');
+    expect(r.faixa).toBe(6);
+    igual(r.pCBSSN, '3.00118');
+    igual(r.pIBSSN, '0.01884375');
+    igual(r.efetivaTotal, '15.93884375'); // 11,9 + 4,02 + 0,01884375
+    igual(r.dasSemCbsIbs, '12.91882');
+    igual(porTributo('II', '4000000').ICMS, '4.02');
+  });
+});
+
+describe('6ª faixa: teto de 5% do ISS (LC 123, art. 18, § 1º-B, I; Res. CGSN 140, art. 21, III) — interpretação pendente de ratificação', () => {
+  it('Anexo III, RBT12 = 4.000.000: ISS fixo em 5 e excedente aos federais da 6ª e ao IBS, pelos percentuais', () => {
+    // efetiva 6ª = 32,90 − 648.000 × 100 / 4.000.000 = 16,7%;  efetiva 5ª = 21 − 125.640 × 100 / 4.000.000 = 17,859%
+    // ISS pela 5ª = 17,859 × 33,50% = 5,982765 > 5 → excedente = 0,982765
+    // pesos: IRPJ 35,09 + CSLL 15,04 + CBS 19,29 + CPP 30,58 (6ª faixa) + IBS 0,17 (5ª faixa) = 100,17
+    // CBS = 16,7 × 19,29% + 0,982765 × 19,29 / 100,17 = 3,22143 + 0,18925363731656184486373165618…
+    // IBS = 17,859 × 0,17% + 0,982765 × 0,17 / 100,17 = 0,0303603 + 0,00166786512928022361984626135…
+    const p = porTributo('III', '4000000');
+    igual(p.ISS, '5');
+    const r = ok('III', '4000000');
+    quase(r.pCBSSN, '3.41068363731656184486373165618448637316561844863731656');
+    quase(r.pIBSSN, '0.0320281651292802236198462613556953179594689028651292802');
+    // a redistribuição não muda o total: 16,7 + 5,982765 + 0,0303603
+    igual(r.efetivaTotal, '22.7131253');
+    quase(r.dasSemCbsIbs, '19.2704134975541579315164220824598183088749126484975541');
+  });
+
+  it('Anexo IV, RBT12 = 4.000.000: ISS fixo em 5 e excedente aos federais da 6ª e ao IBS, pelos percentuais', () => {
+    // efetiva 6ª = 32,90 − 828.000 × 100 / 4.000.000 = 12,2%;  efetiva 5ª = 22 − 183.780 × 100 / 4.000.000 = 17,4055%
+    // ISS pela 5ª = 17,4055 × 40% = 6,9622 > 5 → excedente = 1,9622
+    // pesos: IRPJ 53,71 + CSLL 21,59 + CBS 24,70 (6ª faixa) + IBS 0,24 (5ª faixa) = 100,24
+    // CBS = 12,2 × 24,70% + 1,9622 × 24,70 / 100,24 = 3,0134 + 0,48350299281723862729449321628…
+    // IBS = 17,4055 × 0,24% + 1,9622 × 0,24 / 100,24 = 0,0417732 + 0,00469800478850758180367118914…
+    const p = porTributo('IV', '4000000');
+    igual(p.ISS, '5');
+    const r = ok('IV', '4000000');
+    quase(r.pCBSSN, '3.49690299281723862729449321628092577813248204309656824');
+    quase(r.pIBSSN, '0.0464712047885075818036711891460494812450119712689545092');
+    igual(r.efetivaTotal, '19.2039732'); // 12,2 + 6,9622 + 0,0417732
+    quase(r.dasSemCbsIbs, '15.6605990023942537909018355945730247406225059856344773');
+  });
+
+  it('Anexo V, RBT12 = 3.602.000: ISS pela 5ª faixa fica ≤ 5, nada é redistribuído', () => {
+    const rbt12 = Big('3602000');
+    const f = ANEXOS_2027.V.faixas;
+    // efetiva 6ª = 30,40 − 540.000 × 100 / RBT12; efetiva 5ª = 23 − 62.100 × 100 / RBT12 ≈ 21,27596
+    const ef6 = Big('30.40').minus(Big(540000).times(100).div(rbt12));
+    const ef5 = Big('23').minus(Big(62100).times(100).div(rbt12));
+    const p = porTributo('V', '3602000');
+    expect(p.ISS.lte(5)).toBe(true); // ≈ 21,27596 × 23,50% ≈ 4,99985
+    expect(p.ISS.minus(ef5.times('23.50').div(100)).abs().lt('1e-17')).toBe(true);
+    const r = ok('V', '3602000');
+    expect(r.pCBSSN.minus(ef6.times(f[5].reparticao.CBS).div(100)).abs().lt('1e-17')).toBe(true);
+    expect(r.pIBSSN.minus(ef5.times('0.19').div(100)).abs().lt('1e-17')).toBe(true);
+    for (const t of ['IRPJ', 'CSLL', 'CPP']) {
+      expect(p[t].minus(ef6.times(f[5].reparticao[t]).div(100)).abs().lt('1e-17')).toBe(true);
+    }
   });
 });
 
