@@ -4,7 +4,7 @@
  *
  * Composição (203 arquivos, 200 notas válidas):
  *  - 150 vendas da empresa: 70 NF-e PJ, 30 NF-e PF, 30 NFC-e, 20 NFS-e nacional (60% PJ por quantidade);
- *  - 50 compras (NF-e de 3 fornecedores, com grupo IBSCBS);
+ *  - 50 compras (NF-e de 3 fornecedores, com grupo IBSCBS nas alíquotas de teste de 2026: CBS 0,9% e IBS 0,1%);
  *  - 3 NCMs com alíquota reduzida (da tabela oficial exportada), 1 NCM incompatível com o cClassTrib da nota
  *    (numa venda e numa compra; o motor regular responde REG-011), 2 arquivos duplicados e 1 evento de cancelamento.
  */
@@ -27,7 +27,10 @@ export const ESPERADO = {
 } as const;
 
 /** Alíquotas de referência de 2027 usadas pelos motores (docs/spike-motores.md), em %. */
-const ALIQ = { cbs: 8.8, ibsUF: 0.05, ibsMun: 0.05 };
+const ALIQ_2027 = { cbs: 8.8, ibsUF: 0.05, ibsMun: 0.05 };
+/** Alíquotas de teste de 2026 que as notas reais trazem no grupo IBSCBS (LC 214/2025, arts. 343 e 346), em %. */
+const ALIQ_TESTE_2026 = { cbs: 0.9, ibsUF: 0.1, ibsMun: 0 };
+const aliquotasDoAno = (emissao: string) => (emissao.slice(0, 4) < '2027' ? ALIQ_TESTE_2026 : ALIQ_2027);
 
 /** NCMs com alíquota reduzida na tabela oficial exportada (/dados/sugestoes-classificacao.json). */
 const NCMS_REDUZIDOS = [
@@ -125,15 +128,15 @@ interface ItemGerado {
   grupo?: { cst: string; cClassTrib: string; reducao: number };
 }
 
-function xmlGrupo(base: number, g: NonNullable<ItemGerado['grupo']>): string {
+function xmlGrupo(base: number, g: NonNullable<ItemGerado['grupo']>, aliq: typeof ALIQ_2027): string {
   const f = 1 - g.reducao / 100;
-  const vCBS = arredondar((base * ALIQ.cbs * f) / 100);
-  const vUF = arredondar((base * ALIQ.ibsUF * f) / 100);
-  const vMun = arredondar((base * ALIQ.ibsMun * f) / 100);
+  const vCBS = arredondar((base * aliq.cbs * f) / 100);
+  const vUF = arredondar((base * aliq.ibsUF * f) / 100);
+  const vMun = arredondar((base * aliq.ibsMun * f) / 100);
   return `<IBSCBS><CST>${g.cst}</CST><cClassTrib>${g.cClassTrib}</cClassTrib><gIBSCBS><vBC>${dinheiro(base)}</vBC>
-            <gIBSUF><pIBSUF>${ALIQ.ibsUF.toFixed(2)}</pIBSUF><vIBSUF>${dinheiro(vUF)}</vIBSUF></gIBSUF>
-            <gIBSMun><pIBSMun>${ALIQ.ibsMun.toFixed(2)}</pIBSMun><vIBSMun>${dinheiro(vMun)}</vIBSMun></gIBSMun>
-            <vIBS>${dinheiro(vUF + vMun)}</vIBS><gCBS><pCBS>${ALIQ.cbs.toFixed(2)}</pCBS><vCBS>${dinheiro(vCBS)}</vCBS></gCBS></gIBSCBS></IBSCBS>`;
+            <gIBSUF><pIBSUF>${aliq.ibsUF.toFixed(2)}</pIBSUF><vIBSUF>${dinheiro(vUF)}</vIBSUF></gIBSUF>
+            <gIBSMun><pIBSMun>${aliq.ibsMun.toFixed(2)}</pIBSMun><vIBSMun>${dinheiro(vMun)}</vIBSMun></gIBSMun>
+            <vIBS>${dinheiro(vUF + vMun)}</vIBS><gCBS><pCBS>${aliq.cbs.toFixed(2)}</pCBS><vCBS>${dinheiro(vCBS)}</vCBS></gCBS></gIBSCBS></IBSCBS>`;
 }
 
 interface DadosNFe {
@@ -170,7 +173,7 @@ export function xmlNFe(d: DadosNFe): { chave: string; xml: string } {
         </prod>
         <imposto>
           <ICMS><ICMS00><orig>0</orig><CST>00</CST></ICMS00></ICMS>
-          ${it.grupo ? xmlGrupo(it.valor, it.grupo) : ''}
+          ${it.grupo ? xmlGrupo(it.valor, it.grupo, aliquotasDoAno(d.emissao)) : ''}
         </imposto>
       </det>`,
     )

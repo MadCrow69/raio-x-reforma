@@ -1,13 +1,20 @@
 import type { MotivoIgnorado, TipoDocumento } from '../leitura/tipos';
 import type { EstadoItem } from '../motor/tipos';
 
-export type Achado = 'OK' | 'ERRO_MOTOR' | 'VALOR_DIVERGENTE' | 'SEM_GRUPO_NA_NOTA' | 'NAO_CALCULADO';
+export type Achado =
+  | 'OK'
+  | 'ERRO_MOTOR'
+  | 'VALOR_DIVERGENTE'
+  | 'SEM_GRUPO_NA_NOTA'
+  | 'NOTA_ALIQUOTA_TESTE'
+  | 'NAO_CALCULADO';
 
 export const ROTULO_ACHADO: Record<Achado, string> = {
   OK: 'OK',
   ERRO_MOTOR: 'Erro do motor',
   VALOR_DIVERGENTE: 'Valor divergente',
   SEM_GRUPO_NA_NOTA: 'Sem grupo IBS/CBS na nota',
+  NOTA_ALIQUOTA_TESTE: 'Nota anterior a 2027 (alíquotas de teste)',
   NAO_CALCULADO: 'Não calculado',
 };
 

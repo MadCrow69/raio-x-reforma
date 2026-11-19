@@ -39,3 +39,8 @@
   --selo-ponto: var(--cor-texto-2);
   --selo-texto: var(--cor-texto-2);
 }
+
+.selo-achado--nota_aliquota_teste {
+  --selo-ponto: var(--cor-texto-2);
+  --selo-texto: var(--cor-texto-2);
+}

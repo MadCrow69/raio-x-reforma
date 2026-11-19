@@ -2,7 +2,7 @@ import Big from 'big.js';
 import { calc } from '../dominio/decimal';
 import { participacaoPJ } from '../dominio/separar';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
-import { ANO_SIMULADO } from '../motor/montarRequisicoes';
+import { emitidoAntesDoAnoSimulado } from '../motor/montarRequisicoes';
 import { chaveItem, type ItemCalculado } from '../motor/tipos';
 import type { AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
 
@@ -142,7 +142,7 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
     veredito: decidir(diferencaMes, simples, regular),
     origemCompras: origemCompras.tipo,
     percentualPJ: participacaoPJ(vendasIncluidas).percentualPJ,
-    notas2026Simuladas: vendas.some((v) => v.emissao.slice(0, 4) < ANO_SIMULADO),
+    notas2026Simuladas: vendas.some((v) => emitidoAntesDoAnoSimulado(v.emissao)),
     itensExcluidos,
   };
 }

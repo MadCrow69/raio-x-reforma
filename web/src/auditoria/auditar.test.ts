@@ -22,9 +22,9 @@ function item(numero: number, nota?: [string, string, string]): ItemDocumento {
     },
   };
 }
-function doc(itens: ItemDocumento[], chave = 'C1'): Documento {
+function doc(itens: ItemDocumento[], chave = 'C1', emissao = '2027-01-01T00:00:00-03:00'): Documento {
   return {
-    chave, numero: '10', tipo: 'NFE', tpDoc: 55, emissao: '2027-01-01T00:00:00-03:00',
+    chave, numero: '10', tipo: 'NFE', tpDoc: 55, emissao,
     emitente: { documento: '1', tipo: 'PJ' }, itens, arquivo: 'a.xml',
   };
 }
@@ -121,6 +121,31 @@ describe('auditar', () => {
     it('compras não mudam: a validação só vale para vendas', () => {
       const [l] = auditar([], [doc([item(1, ['0.9', '0.1', '0'])])], [calc(1, ['0.9', '0.1', '0'])], {}, [recusado()]);
       expect(l.achado).toBe('OK');
+    });
+  });
+
+  describe('notas anteriores a 2027 (alíquotas de teste)', () => {
+    const em2026 = '2026-05-10T10:00:00-03:00';
+
+    it('compra de 2026 com grupo não é comparada: NOTA_ALIQUOTA_TESTE, sem diferença', () => {
+      const [l] = auditar([], [doc([item(1, ['0.9', '0.1', '0'])], 'C1', em2026)], [calc(1, ['8.8', '0.05', '0.05'])]);
+      expect(l.achado).toBe('NOTA_ALIQUOTA_TESTE');
+      expect(l.diferenca).toBeUndefined();
+      expect(l.vNota?.toString()).toBe('1');
+      expect(l.vMotor.toString()).toBe('8.9');
+    });
+    it('venda de 2026 com grupo também não é comparada', () => {
+      const [l] = auditar([doc([item(1, ['0.9', '0.1', '0'])], 'C1', em2026)], [], [calc(1, ['5', '1', '0'])], {}, [calc(1, ['8.8', '0.05', '0.05'])]);
+      expect(l.achado).toBe('NOTA_ALIQUOTA_TESTE');
+    });
+    it('erro do motor continua prevalecendo', () => {
+      const erros = [{ code: 'REG-011', title: 't', detail: 'd' }];
+      const [l] = auditar([], [doc([item(1, ['0.9', '0.1', '0'])], 'C1', em2026)], [calc(1, ['0', '0', '0'], { estado: 'INCONSISTENCIA_ENTRADA', erros })]);
+      expect(l.achado).toBe('ERRO_MOTOR');
+    });
+    it('nota de 2026 sem grupo segue SEM_GRUPO_NA_NOTA', () => {
+      const [l] = auditar([], [doc([item(1)], 'C1', em2026)], [calc(1, ['8.8', '0.05', '0.05'])]);
+      expect(l.achado).toBe('SEM_GRUPO_NA_NOTA');
     });
   });
 });

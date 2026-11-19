@@ -21,12 +21,12 @@ const item = (numero: number, ibscbsNota?: GrupoIbsCbsNota): ItemDocumento => ({
   ibscbsNota,
 });
 
-const compra = (chave: string, itens: ItemDocumento[]): Documento => ({
+const compra = (chave: string, itens: ItemDocumento[], emissao = '2027-01-10T10:00:00-03:00'): Documento => ({
   chave,
   numero: chave,
   tipo: 'NFE',
   tpDoc: 55,
-  emissao: '2027-01-10T10:00:00-03:00',
+  emissao,
   emitente: { documento: '11444777000161', tipo: 'PJ' },
   destinatario: { documento: '11222333000181', tipo: 'PJ' },
   itens,
@@ -85,5 +85,28 @@ describe('somarCreditosCompras', () => {
   it('item com grupo na nota nunca conta como sem crédito, mesmo com o motor falhando', () => {
     const c = [compra('c1', [item(1, grupo('1', '0', '0'))])];
     expect(somarCreditosCompras(c, [calculado('c1', 1, ['0', '0', '0'], 'FALHA_TECNICA')]).itensSemCredito).toBe(0);
+  });
+
+  describe('notas anteriores a 2027 (grupo com alíquotas de teste de 2026)', () => {
+    const em2026 = '2026-05-10T10:00:00-03:00';
+
+    it('ignora o grupo da nota e usa o valor do motor (alíquotas de 2027)', () => {
+      const c = [compra('c1', [item(1, grupo('0.9', '0.1', '0'))], em2026)];
+      const r = somarCreditosCompras(c, [calculado('c1', 1, ['88', '0.5', '0.5'])]);
+      expect(r.creditos.toString()).toBe('89');
+      expect(r.itensSemCredito).toBe(0);
+    });
+
+    it('sem cálculo do motor o item conta como sem crédito, mesmo com grupo na nota', () => {
+      const c = [compra('c1', [item(1, grupo('0.9', '0.1', '0'))], em2026)];
+      const r = somarCreditosCompras(c, [calculado('c1', 1, ['88', '0.5', '0.5'], 'INCONSISTENCIA_ENTRADA')]);
+      expect(r.creditos.toString()).toBe('0');
+      expect(r.itensSemCredito).toBe(1);
+    });
+
+    it('nota de 2027 continua usando o grupo da própria nota', () => {
+      const c = [compra('c1', [item(1, grupo('88', '0.5', '0.5'))], '2027-01-02T10:00:00-03:00')];
+      expect(somarCreditosCompras(c, [calculado('c1', 1, ['1', '0', '0'])]).creditos.toString()).toBe('89');
+    });
   });
 });

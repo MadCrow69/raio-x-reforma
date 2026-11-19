@@ -42,6 +42,13 @@ export const ERRO_SEM_MUNICIPIO: Pick<ErroMotor, 'code' | 'title'> = {
   title: 'Município da operação não identificado no documento',
 };
 
+/**
+ * Documento emitido antes do ano simulado: em 2026 o grupo IBS/CBS das notas usa as alíquotas de teste
+ * (CBS 0,9% e IBS 0,1%, LC 214/2025, arts. 343 e 346), não as de 2027; o valor da nota não serve de
+ * crédito nem de comparação com o recálculo de 2027.
+ */
+export const emitidoAntesDoAnoSimulado = (emissaoIso: string) => emissaoIso.slice(0, 4) < ANO_SIMULADO;
+
 /** Mesmo dia/mês em 2027; 29/02 → 28/02 (2027 não é bissexto). */
 export function dataEm2027(emissaoIso: string): string {
   const em2027 = ANO_SIMULADO + emissaoIso.slice(4);

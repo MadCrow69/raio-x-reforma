@@ -1,6 +1,7 @@
 import Big from 'big.js';
 import { identificarGrupo, type Classificacoes } from '../classificacao/sugestoes';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
+import { emitidoAntesDoAnoSimulado } from '../motor/montarRequisicoes';
 import { chaveItem, type EstadoItem, type ErroMotor, type ItemCalculado, type OrigemMemoria } from '../motor/tipos';
 import type { Achado } from './rotulos';
 
@@ -59,6 +60,8 @@ function linhasDe(
       else if (!c) achado = 'NAO_CALCULADO';
       else if (c.estado !== 'CALCULO_SIMULADO') achado = c.erros.length > 0 ? 'ERRO_MOTOR' : 'NAO_CALCULADO';
       else if (!g) achado = 'SEM_GRUPO_NA_NOTA';
+      // Grupo de 2026 traz as alíquotas de teste: comparar com o recálculo de 2027 acusaria divergência em toda nota.
+      else if (emitidoAntesDoAnoSimulado(d.emissao)) achado = 'NOTA_ALIQUOTA_TESTE';
       else {
         const difs = [g.vCBS.minus(c.vCBS), g.vIBSUF.minus(c.vIBSUF), g.vIBSMun.minus(c.vIBSMun)];
         const maior = difs.reduce((a, b) => (b.abs().gt(a.abs()) ? b : a));
