@@ -28,6 +28,7 @@ import Esqueleto from '../ui/componentes/Esqueleto';
 import ListaAgrupada, { ItemListaRecolhivel } from '../ui/componentes/ListaAgrupada';
 import { contar, formatarMoeda } from '../ui/formatar';
 import ArquivosIgnorados from './ArquivosIgnorados';
+import { NOTA_SEXTA_FAIXA } from './avisos';
 import './Confirmar.css';
 import ConfirmarClassificacao from './ConfirmarClassificacao';
 import { opcaoEscolhida } from './escolhaClassificacao';
@@ -55,8 +56,6 @@ const AJUDA_RBT12 =
   'Receita bruta dos 12 meses anteriores ao mês anterior ao da apuração (a partir de 2027: Res. CGSN 140, art. 21, II, “a”, na redação da Res. CGSN 190). Em início de atividade, veja o art. 22, § 2º.';
 const AJUDA_FOLHA =
   'Salários, pró-labore e encargos (FGTS e INSS patronal) pagos nos 12 meses. Com folha de 28% ou mais do faturamento vale o Anexo III; abaixo disso, o V (LC 123, art. 18, § 5º-J).';
-const NOTA_SEXTA_FAIXA =
-  '6ª faixa: o cálculo segue a interpretação do teto de 5% do ISS (Res. CGSN 190, art. 21, III). Confirme com seu contador.';
 
 const ZERO = new Big(0);
 const CEM = new Big(100);

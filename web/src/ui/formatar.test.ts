@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contar, formatarPeriodo } from './formatar';
+import { contar, formatarCnpj, formatarMeses, formatarPeriodo } from './formatar';
 
 describe('formatar', () => {
   it('contar usa singular só para 1 e separa milhar', () => {
@@ -12,5 +12,17 @@ describe('formatar', () => {
     expect(formatarPeriodo([])).toBe('');
     expect(formatarPeriodo(['2026-03-10T10:00:00-03:00', '2026-03-31T23:00:00-03:00'])).toBe('mar/2026');
     expect(formatarPeriodo(['2027-05-02', '2026-12-01T08:00:00-03:00', '2027-01-15'])).toBe('dez/2026 a mai/2027');
+  });
+  it('formatarMeses: um mês, intervalo no mesmo ano e entre anos', () => {
+    expect(formatarMeses([])).toBe('');
+    expect(formatarMeses(['2026-03'])).toBe('mar/2026');
+    expect(formatarMeses(['2026-05', '2026-03', '2026-04'])).toBe('mar–mai/2026');
+    expect(formatarMeses(['2025-11', '2026-02'])).toBe('nov/2025–fev/2026');
+  });
+
+  it('formatarCnpj aplica a máscara de 14 caracteres (numérico ou alfanumérico)', () => {
+    expect(formatarCnpj('11222333000181')).toBe('11.222.333/0001-81');
+    expect(formatarCnpj('12ABC34501DE35')).toBe('12.ABC.345/01DE-35');
+    expect(formatarCnpj('123')).toBe('123');
   });
 });

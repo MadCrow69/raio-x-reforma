@@ -1,9 +1,11 @@
 import { LucideProvider, ScanLine } from 'lucide-react'
 import './App.css'
 import { useFluxo, type Passo } from './fluxo/estado'
+import { usaSextaFaixa } from './simulacao/analisar'
+import Calculando from './telas/Calculando'
 import Confirmar from './telas/Confirmar'
 import Enviar from './telas/Enviar'
-import Botao from './ui/componentes/Botao'
+import Resultado from './telas/Resultado'
 
 const ETAPAS: { rotulo: string; passos: Passo[] }[] = [
   { rotulo: 'Enviar', passos: ['ENVIAR'] },
@@ -57,16 +59,25 @@ export default function App() {
                 despachar({ tipo: 'EMPRESA_CONFIRMADA', cnpjEmpresa, parametros, origemCompras })
               }
             />
-          ) : (
-            // O passo 3 (cálculo e resultado) chega na próxima tarefa.
-            <section className="em-construcao">
-              <h1 className="em-construcao__titulo">Calculando</h1>
-              <p className="em-construcao__texto">Esta etapa ainda está em construção.</p>
-              <Botao variante="secundario" onClick={() => despachar({ tipo: 'NOVA_ANALISE' })}>
-                Nova análise
-              </Botao>
-            </section>
-          )}
+          ) : estado.passo === 'CALCULANDO' && estado.separacao && estado.parametros && estado.origemCompras ? (
+            <Calculando
+              vendas={estado.separacao.vendas}
+              compras={estado.separacao.compras}
+              parametros={estado.parametros}
+              origemCompras={estado.origemCompras}
+              aoConcluir={(auditoria, simulacao) => despachar({ tipo: 'CALCULO_CONCLUIDO', auditoria, simulacao })}
+              aoVoltar={() => despachar({ tipo: 'VOLTAR_AO_CONFIRMAR' })}
+            />
+          ) : estado.passo === 'RESULTADO' && estado.simulacao && estado.auditoria && estado.parametros ? (
+            <Resultado
+              cnpjEmpresa={estado.cnpjEmpresa}
+              simulacao={estado.simulacao}
+              auditoria={estado.auditoria}
+              sextaFaixa={usaSextaFaixa(estado.parametros)}
+              notasCompra={estado.separacao?.compras.length}
+              aoNovaAnalise={() => despachar({ tipo: 'NOVA_ANALISE' })}
+            />
+          ) : null}
         </main>
 
         <footer className="app__rodape">

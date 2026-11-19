@@ -1,0 +1,153 @@
+.resumo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+
+.resumo__veredito {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  min-width: 0;
+  margin-bottom: var(--esp-2);
+}
+
+.resumo__selo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+}
+
+.resumo__ponto {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--raio-pilula);
+}
+
+.resumo__ponto--real {
+  background: var(--cor-sucesso);
+}
+
+.resumo__ponto--estimada {
+  background: var(--cor-alerta);
+}
+
+.resumo__titulo {
+  font: var(--texto-titulo-grande);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.resumo__diferenca {
+  font: var(--texto-titulo-3);
+  color: var(--cor-destaque-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.resumo__explicacao {
+  max-width: 60ch;
+  font: var(--texto-corpo);
+  color: var(--cor-texto-2);
+  text-wrap: pretty;
+}
+
+.resumo__excluidos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-2);
+}
+
+.resumo__excluidos .alerta {
+  align-self: stretch;
+}
+
+.resumo__cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  min-width: 0;
+  padding: var(--esp-4);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-cartao);
+}
+
+.resumo__tabela {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font: var(--texto-corpo);
+}
+
+.resumo__tabela th,
+.resumo__tabela td {
+  padding: var(--esp-3) var(--esp-2);
+  text-align: right;
+  vertical-align: baseline;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.resumo__tabela thead th {
+  font: var(--texto-destaque);
+}
+
+.resumo__tabela tbody th {
+  width: 34%;
+  text-align: left;
+  font: var(--texto-secundario);
+  color: var(--cor-texto-2);
+}
+
+.resumo__tabela tbody tr {
+  border-top: 1px solid var(--cor-separador);
+}
+
+.resumo__tabela tbody td {
+  font: var(--texto-destaque);
+}
+
+.resumo__sub {
+  display: block;
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+}
+
+.resumo__nota {
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+  text-wrap: pretty;
+}
+
+.resumo__legal {
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .resumo__cartao {
+    padding: var(--esp-3);
+  }
+
+  .resumo__tabela th,
+  .resumo__tabela td {
+    padding: var(--esp-3) var(--esp-0);
+  }
+
+  /* Valor nunca quebra entre "R$" e os dígitos; coluna de rótulo mais estreita abre espaço para ele. */
+  .resumo__tabela tbody th {
+    width: 26%;
+  }
+
+  .resumo__tabela tbody td {
+    font: var(--texto-secundario);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+}

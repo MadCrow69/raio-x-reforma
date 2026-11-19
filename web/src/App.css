@@ -92,22 +92,6 @@
   text-wrap: balance;
 }
 
-.em-construcao {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--esp-3);
-}
-
-.em-construcao__titulo {
-  font: var(--texto-titulo-grande);
-  letter-spacing: -0.02em;
-}
-
-.em-construcao__texto {
-  color: var(--cor-texto-2);
-}
-
 @media (max-width: 767px) {
   .app__topo {
     padding: var(--esp-4) var(--esp-4) 0;

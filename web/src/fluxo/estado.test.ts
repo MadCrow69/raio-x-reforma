@@ -75,4 +75,23 @@ describe('reduzirFluxo', () => {
     expect(e.leitura).toBe(leitura);
     expect(e.separacao).toBeUndefined();
   });
+  it('VOLTAR_AO_CONFIRMAR reabre o passo 2 com arquivos, leitura e empresa, sem erro nem resultado', () => {
+    const arquivos = [new File(['x'], 'a.xml')];
+    const leitura = { documentos: [doc('1', EMPRESA, OUTRA)], ignorados: [] };
+    const lido = reduzirFluxo(ESTADO_INICIAL, { tipo: 'ARQUIVOS_LIDOS', leitura, arquivos });
+    const parametros = { classificacoes: {}, atividadePorTipo: {}, aliquotasSimples: {} };
+    const calculando = reduzirFluxo(lido, {
+      tipo: 'EMPRESA_CONFIRMADA',
+      cnpjEmpresa: EMPRESA,
+      parametros,
+      origemCompras: { tipo: 'REAL', creditos: new Big(0) },
+    });
+    const e = reduzirFluxo({ ...calculando, erro: 'falhou' }, { tipo: 'VOLTAR_AO_CONFIRMAR' });
+    expect(e.passo).toBe('CONFIRMAR');
+    expect(e.arquivos).toBe(arquivos);
+    expect(e.leitura).toBe(leitura);
+    expect(e.cnpjEmpresa).toBe(EMPRESA);
+    expect(e.erro).toBeUndefined();
+    expect(e.simulacao).toBeUndefined();
+  });
 });

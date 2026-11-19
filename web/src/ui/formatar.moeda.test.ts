@@ -25,4 +25,8 @@ describe('moeda pt-BR', () => {
     expect(formatarMoeda(Big('0'))).toBe('R$ 0,00');
     expect(formatarNumeroBR(Big('1234.5'))).toBe('1.234,50');
   });
+  it('valor negativo leva o sinal antes do símbolo; zero arredondado não leva sinal', () => {
+    expect(formatarMoeda(new Big('-1234.5'))).toBe('-R$ 1.234,50');
+    expect(formatarMoeda(new Big('-0.001'))).toBe('R$ 0,00');
+  });
 });
