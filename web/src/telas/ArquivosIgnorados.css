@@ -2,6 +2,8 @@
   padding-bottom: var(--esp-2);
   font: var(--texto-nota);
   color: var(--cor-texto-2);
+  /* o detalhe pode citar um caminho de arquivo longo e sem espaços (ex.: a nota cancelada pelo evento) */
+  overflow-wrap: anywhere;
 }
 
 .ignorados {

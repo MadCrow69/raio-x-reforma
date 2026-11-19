@@ -13,6 +13,15 @@ const VEREDITOS = [
 test('fluxo completo: enviar, confirmar, calcular nos motores reais e auditar', async ({ page }) => {
   const notas = gerarNotas();
   expect(notas.arquivos).toBe(ESPERADO.arquivos);
+  // a política de segurança (CSP do Caddy) não pode bloquear nada da SPA: fontes, CSS, chamadas aos motores, download
+  const violacoes: string[] = [];
+  page.on('console', (m) => {
+    if (/Content Security Policy|Refused to/i.test(m.text())) violacoes.push(m.text());
+  });
+  const inicial = await page.request.get('/');
+  expect(inicial.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
+  expect(inicial.headers()['x-content-type-options']).toBe('nosniff');
+  expect(inicial.headers()['referrer-policy']).toBe('no-referrer');
 
   // 1. Enviar
   await enviarNotas(page, notas);
@@ -35,6 +44,12 @@ test('fluxo completo: enviar, confirmar, calcular nos motores reais e auditar', 
   }
   await expect(page.getByText(/compras reais · .*2026/)).toBeVisible();
   await expect(page.getByText('Simulação educativa. Não substitui a orientação do seu contador.')).toBeVisible();
+  // de onde vêm os números: atividade, meses, faturamento, créditos e alíquotas nominais com a origem
+  const comoChegamos = page.getByRole('region', { name: 'Como chegamos aqui' });
+  await expect(comoChegamos).toBeVisible();
+  await expect(comoChegamos.getByText(/^Atividade 01 · NF-e e NFC-e$/)).toBeVisible();
+  await expect(comoChegamos.getByText('Créditos das compras por mês')).toBeVisible();
+  await expect(comoChegamos.getByText(/referência 2027 \(LC 214\)|dados abertos da calculadora oficial/).first()).toBeVisible();
 
   // 4. Auditoria: REG-011 e CSV
   await page.getByRole('tab', { name: /^Auditoria/ }).click();
@@ -50,10 +65,15 @@ test('fluxo completo: enviar, confirmar, calcular nos motores reais e auditar', 
   const linhas = csv.toString('utf8').replace(/^\uFEFF/, '').split('\r\n');
   expect(linhas[0]).toContain('Descrição');
   expect(linhas.some((l) => l.includes('Venda') && l.includes('REG-011'))).toBe(true);
+  // compras de 2026 trazem o grupo com as alíquotas de teste: achado próprio, nunca "Valor divergente"
+  const compras = linhas.filter((l) => l.split(';')[1] === 'Compra');
+  expect(compras.filter((l) => l.includes('Nota anterior a 2027 (alíquotas de teste)')).length).toBe(ESPERADO.compras - 1);
+  expect(compras.some((l) => l.includes('Valor divergente'))).toBe(false);
 
   // 5. Memória de cálculo: as duas origens aparecem (vendas: composta pelo app; compras: texto do motor regular)
   await page.getByRole('tab', { name: 'Memória de cálculo' }).click();
   await expect(page.getByText('Composta pelo Raio-X a partir da resposta do motor').first()).toBeVisible();
   await page.getByLabel('Buscar por nota, descrição ou texto da memória').fill('Operação de consumo');
   await expect(page.getByText('Memória do motor oficial').first()).toBeVisible();
+  expect(violacoes).toEqual([]);
 });

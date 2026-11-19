@@ -25,6 +25,9 @@ async function medir(page: Page, tamanho: string, tela: string, saida: Medicao[]
 }
 
 test.skip(!SCRIPT, 'defina LAYOUT_AUDIT_JS para medir o layout');
+// O medidor é injetado como script inline; a CSP do Caddy (script-src 'self') o bloquearia. Só a medição ignora a CSP;
+// o fluxo.spec roda com ela ativa e confere que nada da SPA é bloqueado.
+test.use({ bypassCSP: true });
 
 test('layout das telas nos 7 tamanhos', async ({ page }) => {
   test.setTimeout(900_000);
