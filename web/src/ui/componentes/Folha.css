@@ -1,4 +1,4 @@
-/* Modal M (720 px) com folga ≥ 64 px em cima/embaixo e 48 px nos lados; < 768 px vira folha de baixo. */
+/* Modal M (720 px) com a folga dos tokens --folga-modal-*; < 768 px vira folha de baixo. */
 .folha-fundo {
   position: fixed;
   inset: 0;
@@ -6,7 +6,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 64px 48px;
+  padding: var(--folga-modal-vertical) var(--folga-modal-lateral);
   background: var(--cor-fundo-sobreposto);
   animation: folha-fundo-entra var(--duracao-media) ease both;
 }

@@ -18,6 +18,7 @@
   --fonte: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
 
   /* Escala de espaçamento 4/8/12/16/24/32 */
+  --esp-0: 2px; /* SÓ tipográfico/ótico: entre título e detalhe, alinhamento de ícone com a 1ª linha, folga interna do segmentado */
   --esp-1: 4px;
   --esp-2: 8px;
   --esp-3: 12px;
@@ -44,6 +45,10 @@
   --altura-controle: 40px;
   --alvo-toque: 44px;
 
+  /* Folga do modal até as bordas da tela (padrão de interface §9: ≥ 64 px em cima/embaixo, 48 px nos lados) */
+  --folga-modal-vertical: 64px;
+  --folga-modal-lateral: 48px;
+
   /* Largura da coluna de leitura do fluxo */
   --largura-conteudo: 720px;
 
@@ -69,6 +74,7 @@
   --cor-destaque-botao: #0071e3;
   --cor-destaque-suave: rgba(0, 122, 255, 0.1);
   --cor-sobre-destaque: #ffffff;
+  --cor-marca-2: #5856d6; /* índigo do sistema: 2ª cor do degradê do símbolo da marca */
 
   --cor-sucesso: #34c759;
   --cor-sucesso-texto: #1e7b34;
@@ -81,6 +87,7 @@
 
   --sombra-cartao: 0 1px 2px rgba(0, 0, 0, 0.04);
   --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --sombra-segmento: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -100,6 +107,7 @@
     --cor-destaque-texto: #409cff; /* azul de contraste aumentado do iOS: 4,5:1 até sobre o cinza do botão secundário */
     --cor-destaque-botao: #0071e3;
     --cor-destaque-suave: rgba(10, 132, 255, 0.18);
+    --cor-marca-2: #5e5ce6;
 
     --cor-sucesso-texto: #34c759;
     --cor-alerta-texto: #ff9f0a;
@@ -109,6 +117,7 @@
 
     --sombra-cartao: none;
     --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --sombra-segmento: 0 3px 8px rgba(0, 0, 0, 0.4);
   }
 }
 

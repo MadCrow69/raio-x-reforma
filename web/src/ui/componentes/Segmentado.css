@@ -1,9 +1,9 @@
 .segmentado {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: var(--esp-0);
   max-width: 100%;
-  padding: 2px;
+  padding: var(--esp-0);
   border-radius: var(--raio-1);
   background: var(--cor-preenchimento);
 }
@@ -17,7 +17,7 @@
   min-height: 32px;
   padding: 0 var(--esp-4);
   border: 0;
-  border-radius: calc(var(--raio-1) - 2px); /* raio interno = externo − folga */
+  border-radius: calc(var(--raio-1) - var(--esp-0)); /* raio interno = externo − folga */
   background: transparent;
   color: var(--cor-texto);
   font: var(--texto-secundario);
@@ -29,17 +29,16 @@
     box-shadow var(--duracao-curta) ease;
 }
 
-.segmentado__opcao[aria-selected='true'] {
+.segmentado__opcao[aria-selected='true'],
+.segmentado__opcao[aria-checked='true'] {
   background: var(--cor-superficie-elevada);
   font-weight: 600;
-  box-shadow:
-    0 3px 8px rgba(0, 0, 0, 0.12),
-    0 1px 1px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--sombra-segmento);
 }
 
 .segmentado__contador {
   min-width: 20px;
-  padding: 0 6px;
+  padding: 0 var(--esp-2);
   border-radius: var(--raio-pilula);
   background: var(--cor-preenchimento-forte);
   font: var(--texto-nota);

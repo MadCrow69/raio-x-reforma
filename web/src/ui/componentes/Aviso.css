@@ -23,7 +23,7 @@
 
 .aviso__icone {
   flex: none;
-  margin-top: 2px;
+  margin-top: var(--esp-0);
 }
 
 .aviso--sucesso .aviso__icone {
@@ -41,7 +41,6 @@
 .aviso__texto {
   flex: 1 1 auto;
   min-width: 0;
-  padding-top: 1px;
 }
 
 .aviso__titulo {
@@ -50,7 +49,7 @@
 }
 
 .aviso__detalhe {
-  margin-top: 2px;
+  margin-top: var(--esp-0);
   font: var(--texto-nota);
   color: var(--cor-texto-2);
 }

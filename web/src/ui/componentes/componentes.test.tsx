@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Aviso, { DURACAO_AVISO_MS } from './Aviso';
 import Folha from './Folha';
+import { idAba, idPainel } from './idsAbas';
 import Segmentado from './Segmentado';
 
 afterEach(() => {
@@ -11,26 +12,48 @@ afterEach(() => {
 });
 
 describe('Segmentado', () => {
+  const OPCOES = [
+    { valor: 'resumo', rotulo: 'Resumo' },
+    { valor: 'auditoria', rotulo: 'Auditoria', contador: 14 },
+    { valor: 'memoria', rotulo: 'Memória de cálculo' },
+  ];
+
   function Abas() {
     const [valor, setValor] = useState('resumo');
     return (
+      <>
+        <Segmentado modo="abas" idBase="res" rotulo="Visão do resultado" valor={valor} aoMudar={setValor} opcoes={OPCOES} />
+        <div role="tabpanel" id={idPainel('res', valor)} aria-labelledby={idAba('res', valor)}>
+          conteúdo de {valor}
+        </div>
+      </>
+    );
+  }
+
+  function Escolha() {
+    const [valor, setValor] = useState('todos');
+    return (
       <Segmentado
-        rotulo="Visão do resultado"
+        modo="escolha"
+        rotulo="Papel"
         valor={valor}
         aoMudar={setValor}
         opcoes={[
-          { valor: 'resumo', rotulo: 'Resumo' },
-          { valor: 'auditoria', rotulo: 'Auditoria', contador: 14 },
-          { valor: 'memoria', rotulo: 'Memória de cálculo' },
+          { valor: 'todos', rotulo: 'Todos' },
+          { valor: 'vendas', rotulo: 'Vendas' },
+          { valor: 'compras', rotulo: 'Compras' },
         ]}
       />
     );
   }
 
-  it('é um tablist; só a aba selecionada entra no Tab; setas mudam e focam a aba (com volta ao início)', () => {
+  it('abas: tablist; aba ↔ painel ligados por id (aria-controls/aria-labelledby); setas e Home/End com volta ao início', () => {
     render(<Abas />);
     expect(screen.getByRole('tablist', { name: 'Visão do resultado' })).toBeTruthy();
     const [resumo, auditoria, memoria] = screen.getAllByRole('tab');
+    expect(resumo.id).toBe(idAba('res', 'resumo'));
+    expect(resumo.getAttribute('aria-controls')).toBe(idPainel('res', 'resumo'));
+    expect(screen.getByRole('tabpanel', { name: 'Resumo' }).textContent).toBe('conteúdo de resumo');
     expect(resumo.getAttribute('aria-selected')).toBe('true');
     expect(resumo.tabIndex).toBe(0);
     expect(auditoria.tabIndex).toBe(-1);
@@ -38,6 +61,7 @@ describe('Segmentado', () => {
     fireEvent.keyDown(resumo, { key: 'ArrowRight' });
     expect(auditoria.getAttribute('aria-selected')).toBe('true');
     expect(document.activeElement).toBe(auditoria);
+    expect(screen.getByRole('tabpanel', { name: /Auditoria/ }).textContent).toBe('conteúdo de auditoria');
 
     fireEvent.keyDown(auditoria, { key: 'End' });
     expect(memoria.getAttribute('aria-selected')).toBe('true');
@@ -45,6 +69,26 @@ describe('Segmentado', () => {
     expect(resumo.getAttribute('aria-selected')).toBe('true');
     fireEvent.keyDown(resumo, { key: 'ArrowLeft' });
     expect(memoria.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('escolha: radiogroup com radios (aria-checked), tabindex móvel e setas', () => {
+    render(<Escolha />);
+    expect(screen.getByRole('radiogroup', { name: 'Papel' })).toBeTruthy();
+    expect(screen.queryByRole('tab')).toBeNull();
+    const [todos, vendas, compras] = screen.getAllByRole('radio');
+    expect(todos.getAttribute('aria-checked')).toBe('true');
+    expect(vendas.getAttribute('aria-checked')).toBe('false');
+    expect([todos.tabIndex, vendas.tabIndex]).toEqual([0, -1]);
+
+    fireEvent.keyDown(todos, { key: 'ArrowDown' });
+    expect(vendas.getAttribute('aria-checked')).toBe('true');
+    expect(document.activeElement).toBe(vendas);
+    fireEvent.keyDown(vendas, { key: 'ArrowUp' });
+    fireEvent.keyDown(todos, { key: 'ArrowLeft' });
+    expect(compras.getAttribute('aria-checked')).toBe('true');
+    fireEvent.click(vendas);
+    expect(vendas.getAttribute('aria-checked')).toBe('true');
+    expect(vendas.tabIndex).toBe(0);
   });
 });
 

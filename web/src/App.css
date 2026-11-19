@@ -32,8 +32,8 @@
   width: 28px;
   height: 28px;
   border-radius: var(--raio-1);
-  background: linear-gradient(145deg, var(--cor-destaque), color-mix(in srgb, var(--cor-destaque) 60%, #5e5ce6));
-  color: #fff;
+  background: linear-gradient(145deg, var(--cor-destaque), color-mix(in srgb, var(--cor-destaque) 60%, var(--cor-marca-2)));
+  color: var(--cor-sobre-destaque);
 }
 
 .etapas {
@@ -47,7 +47,7 @@
 .etapas__item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--esp-2);
   white-space: nowrap;
 }
 

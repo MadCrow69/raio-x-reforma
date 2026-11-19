@@ -45,12 +45,12 @@
 
 .esqueleto__bloco--titulo {
   width: 45%;
-  height: 14px;
+  height: var(--esp-4);
 }
 
 .esqueleto__bloco--detalhe {
   width: 70%;
-  height: 12px;
+  height: var(--esp-3);
 }
 
 @keyframes esqueleto-brilho {
