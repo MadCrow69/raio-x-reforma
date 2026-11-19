@@ -1,0 +1,5 @@
+
+# Playwright
+e2e/.resultados/
+playwright-report/
+test-results/
