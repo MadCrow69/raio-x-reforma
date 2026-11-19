@@ -111,8 +111,8 @@ describe('calcular', () => {
   it('5xx e falha de rede viram FALHA_TECNICA só do documento afetado', async () => {
     fetchMock.mockImplementation(async (_url: string, init: { body: string }) => {
       const id = JSON.parse(init.body).id;
-      if (id === 'A') throw new TypeError('rede');
-      if (id === 'B') return resposta({}, 503);
+      if (id === 'doc-1') throw new TypeError('rede');
+      if (id === 'doc-2') return resposta({}, 503);
       return resposta(simplesNfe);
     });
     const docs = [doc({ chave: 'A' }), doc({ chave: 'B' }), doc({ chave: 'C' })];
@@ -143,5 +143,28 @@ describe('calcular', () => {
     expect(pico).toBe(4);
     expect(prog).toHaveBeenCalledTimes(12);
     expect(prog).toHaveBeenLastCalledWith(12, 12);
+  });
+});
+
+describe('privacidade dos corpos enviados aos motores', () => {
+  it('nenhum corpo leva chave de acesso, CNPJ/CPF ou nome: o id é sequencial (doc-1, doc-2…)', async () => {
+    const chave1 = '41260311222333000181550010000000011100000019';
+    const chave2 = '35260311222333000181550010000000021100000027';
+    const docs = [
+      doc({ chave: chave1, destinatario: { documento: '12345678909', tipo: 'PF', municipioIbge: '3550308', uf: 'SP' } }),
+      doc({ chave: chave2, numero: '2', itens: [item(1), item(2)] }),
+    ];
+    fetchMock.mockImplementation(async (url: string) =>
+      String(url).includes('dados-abertos') ? resposta({}, 404) : resposta({ objetos: [] }),
+    );
+    for (const cenario of ['SIMPLES_POR_DENTRO', 'SIMPLES_POR_FORA', 'REGULAR_AUDITORIA'] as const) {
+      fetchMock.mockClear();
+      await calcular(docs, cenario, parametros());
+      const corpos = fetchMock.mock.calls.filter((c) => c[1]?.body).map((c) => String(c[1].body));
+      expect(corpos).toHaveLength(2);
+      const proibidos = [chave1, chave2, '11222333000181', '99888777000166', '12345678909', 'item 1'];
+      for (const corpo of corpos) for (const p of proibidos) expect(corpo, `${cenario}: ${p}`).not.toContain(p);
+      expect(corpos.map((c) => JSON.parse(c).id).sort()).toEqual(['doc-1', 'doc-2']);
+    }
   });
 });

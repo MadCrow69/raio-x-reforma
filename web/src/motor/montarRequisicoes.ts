@@ -94,11 +94,16 @@ export interface RequisicaoMotor {
   numerosEnviados: number[];
 }
 
+/**
+ * `id` vai no corpo no lugar da chave de acesso (que contém o CNPJ do emitente): quem chama usa um sequencial
+ * ("doc-1") e guarda a relação com o documento só em memória. Nenhum corpo leva chave, CNPJ/CPF, nome ou descrição.
+ */
 export function montarRequisicao(
   doc: Documento,
   cenario: Cenario,
   p: ParametrosCalculo,
   nominais: AliquotasNominais,
+  id: string,
 ): RequisicaoMotor {
   const dataIso = dataEm2027(doc.emissao);
   const naoEnviados: ItemCalculado[] = [];
@@ -131,7 +136,7 @@ export function montarRequisicao(
     }
     return {
       url: URL_SIMPLES,
-      corpo: { id: doc.chave, versao: VERSAO_SIMPLES, data: dataIso.slice(0, 10), tpDoc: String(doc.tpDoc), CRT: '1', itens },
+      corpo: { id, versao: VERSAO_SIMPLES, data: dataIso.slice(0, 10), tpDoc: String(doc.tpDoc), CRT: '1', itens },
       naoEnviados,
       numerosEnviados,
     };
@@ -177,7 +182,7 @@ export function montarRequisicao(
   return {
     url: URL_REGULAR,
     corpo: {
-      id: doc.chave,
+      id,
       versao: VERSAO_REGULAR,
       dhFatoGerador: dataIso,
       municipio: Number(local?.municipio ?? 0),

@@ -26,8 +26,11 @@ Com as notas reais em mãos, dá para simular os dois cenários, em vez de usar 
    e monta a análise     └─────► motor Simples Nacional
 ```
 
-- **Seus XMLs não saem do navegador.** Eles são lidos e interpretados na própria página; só os valores dos itens
-  (base de cálculo, NCM/NBS, classificação) vão ao cálculo. Nada é guardado.
+- **Seus XMLs não saem do navegador.** Eles são lidos e interpretados na própria página. Aos motores de cálculo vão só,
+  por item: base de cálculo (e o valor do Imposto Seletivo, quando há), NCM ou NBS, CST e cClassTrib, quantidade e unidade
+  padrão; e, por nota: o tipo de documento, a data de emissão (levada a 2027), o município (código IBGE) e a UF da
+  operação, a atividade e os percentuais do Simples. O documento vai identificado por um número sequencial (`doc-1`,
+  `doc-2`…): o XML, a chave de acesso, CNPJs/CPFs, nomes e descrições dos itens não saem do navegador. Nada é guardado.
 - O Caddy é o único ponto de entrada: serve a interface e encaminha `/motor/regular/...` e `/motor/simples/...` para os motores,
   que ficam numa rede interna e rodam sem nenhuma alteração.
 - Fluxo em três passos: **Enviar** (XMLs soltos ou ZIP) → **Confirmar** (CNPJ, faturamento, atividade no Simples e

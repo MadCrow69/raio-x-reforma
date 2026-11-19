@@ -128,13 +128,16 @@ function mapearRegular(doc: Documento, o: ObjetoRegularJson): ItemCalculado {
   });
 }
 
-async function calcularDocumento(doc: Documento, cenario: Cenario, p: ParametrosCalculo): Promise<ItemCalculado[]> {
+/** Identificador do documento no corpo enviado ao motor: sequencial, sem dado do contribuinte. */
+export const idRequisicao = (indice: number) => `doc-${indice + 1}`;
+
+async function calcularDocumento(doc: Documento, cenario: Cenario, p: ParametrosCalculo, id: string): Promise<ItemCalculado[]> {
   let nominais: AliquotasNominais = { ...ALIQUOTAS_REFERENCIA_2027 };
   if (cenario !== 'SIMPLES_POR_DENTRO') {
     const local = localDaOperacao(doc);
     if (local) nominais = await buscarAliquotasNominais(local.uf, local.municipio, dataEm2027(doc.emissao).slice(0, 10));
   }
-  const req = montarRequisicao(doc, cenario, p, nominais);
+  const req = montarRequisicao(doc, cenario, p, nominais, id);
   if (req.numerosEnviados.length === 0) return req.naoEnviados;
 
   const falhaTecnica = (detalhe: string) =>
@@ -182,7 +185,8 @@ export async function calcular(
     while (proximo < docs.length) {
       const i = proximo++;
       try {
-        resultados[i] = (await calcularDocumento(docs[i], cenario, p)).sort((a, b) => a.numero - b.numero);
+        // A resposta é ligada ao documento pela posição em `docs` (memória), nunca por dado enviado ao motor.
+        resultados[i] = (await calcularDocumento(docs[i], cenario, p, idRequisicao(i))).sort((a, b) => a.numero - b.numero);
       } catch (e) {
         const detalhe = e instanceof Error ? e.message : String(e);
         resultados[i] = docs[i].itens.map((it) => item(docs[i], it.numero, 'FALHA_TECNICA', [{ ...ERRO_TECNICO, detail: detalhe }]));
