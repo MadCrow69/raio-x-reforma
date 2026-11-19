@@ -1,4 +1,5 @@
 import Big from 'big.js';
+import { saidaSemReceita } from '../dominio/cfop';
 import { calc } from '../dominio/decimal';
 import { participacaoPJ } from '../dominio/separar';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
@@ -38,6 +39,8 @@ export interface ResultadoSimulacao {
   notas2026Simuladas: boolean;
   /** Itens de venda fora da comparação: sem atividade/alíquota ou não CALCULO_SIMULADO nos dois cenários. */
   itensExcluidos: number;
+  /** Itens de saída sem receita (CFOP de transferência/remessa, `dominio/cfop.ts`): fora do faturamento e de tudo mais. */
+  itensSemReceita: number;
 }
 
 export interface EntradaSimulacao {
@@ -84,6 +87,7 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
   let creditoPJDentro = Big(0);
   let creditoPJFora = Big(0);
   let itensExcluidos = 0;
+  let itensSemReceita = 0;
   const vendasIncluidas: Documento[] = [];
   const mesesIncluidos = new Set<string>();
 
@@ -91,6 +95,10 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
     const cAtivSN = atividadePorTipo[v.tipo];
     const aliquotas = cAtivSN ? aliquotasPorAtividade[cAtivSN] : undefined;
     const itens = v.itens.filter((it) => {
+      if (saidaSemReceita(it.cfop)) {
+        itensSemReceita++;
+        return false;
+      }
       receitaTotal = receitaTotal.plus(it.baseCalculo);
       const d = dentro.get(chaveItem(v.chave, it.numero));
       const f = fora.get(chaveItem(v.chave, it.numero));
@@ -144,5 +152,6 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
     percentualPJ: participacaoPJ(vendasIncluidas).percentualPJ,
     notas2026Simuladas: vendas.some((v) => emitidoAntesDoAnoSimulado(v.emissao)),
     itensExcluidos,
+    itensSemReceita,
   };
 }

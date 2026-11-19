@@ -38,9 +38,10 @@ export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaix
 
   /** Atalhos do Resumo: abrem a Auditoria já filtrada no que o aviso conta. */
   function verAuditoria(alvo: FocoAuditoria) {
+    const achado = alvo === 'SEM_RECEITA' ? ['SAIDA_SEM_RECEITA'] : ACHADOS_SEM_CALCULO;
     setEstadoAuditoria({
       ...ESTADO_AUDITORIA_INICIAL,
-      filtros: { ...SEM_FILTROS, achado: ACHADOS_SEM_CALCULO, papel: [alvo === 'COMPRAS_SEM_CREDITO' ? 'COMPRA' : 'VENDA'] },
+      filtros: { ...SEM_FILTROS, achado, papel: [alvo === 'COMPRAS_SEM_CREDITO' ? 'COMPRA' : 'VENDA'] },
     });
     setAba('AUDITORIA');
   }

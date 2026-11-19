@@ -27,13 +27,22 @@ export function detectarEmpresa(docs: Documento[]): string | null {
   return melhor;
 }
 
+/** tpNF da nota de entrada: emitida pela própria empresa, não é venda (ex.: entrada de importação, compra de PF). */
+const TPNF_ENTRADA = '0';
+
 /** Cada documento termina em vendas, compras ou ignorados (nenhum some). */
 export function separar(docs: Documento[], cnpjEmpresa: string): Separacao {
   const empresa = normalizarCnpj(cnpjEmpresa);
   const r: Separacao = { vendas: [], compras: [], ignorados: [] };
   for (const d of docs) {
     if (normalizarCnpj(d.emitente.documento) === empresa) {
-      r.vendas.push(d);
+      if (d.tpNF === TPNF_ENTRADA) {
+        r.ignorados.push({
+          arquivo: d.arquivo,
+          motivo: 'ENTRADA_PROPRIA',
+          detalhe: 'Nota de entrada (tpNF=0) emitida pela própria empresa: não é venda.',
+        });
+      } else r.vendas.push(d);
     } else if (d.destinatario && normalizarCnpj(d.destinatario.documento) === empresa) {
       r.compras.push(d);
     } else {

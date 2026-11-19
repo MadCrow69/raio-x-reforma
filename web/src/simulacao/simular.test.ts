@@ -17,10 +17,11 @@ const ALIQ: Record<string, AliquotasSimples> = {
 };
 const ATIVIDADE: Partial<Record<TipoDocumento, string>> = { NFE: '01' };
 
-const item = (numero: number, base = '1000'): ItemDocumento => ({
+const item = (numero: number, base = '1000', cfop?: string): ItemDocumento => ({
   numero,
   descricao: `Item ${numero}`,
   ncm: '61091000',
+  cfop,
   baseCalculo: Big(base),
   valorIS: Big(0),
 });
@@ -268,5 +269,17 @@ describe('simular', () => {
 
   it('sem vendas → erro (não há mês para tirar a média)', () => {
     expect(() => simular(entrada([], real('0')))).toThrow(RangeError);
+  });
+
+  it('itens de saída sem receita (transferência/remessa) não entram no faturamento nem nos excluídos', () => {
+    // Item 2 (CFOP 5152, transferência) e item 3 (5910, bonificação) saem de tudo; só o item 1 (5102) é receita.
+    const a = venda('A', { itens: [item(1, '1000', '5102'), item(2, '500', '5152'), item(3, '300', '5910')] });
+    const r = simular(entrada([a], real('80')));
+    expect(r.itensSemReceita).toBe(2);
+    expect(r.itensExcluidos).toBe(0);
+    expect(r.faturamentoMes.toString()).toBe('1000');
+    expect(r.simples.impostoMes.toString()).toBe('100');
+    // créditos não são proporcionalizados por item sem receita: 60 + 100 − 80 = 80
+    expect(r.regular.impostoMes.toString()).toBe('80');
   });
 });

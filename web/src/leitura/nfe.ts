@@ -101,6 +101,7 @@ export function lerNFe(xml: Document, arquivo: string): Documento | DocumentoIgn
       tipo: mod === '55' ? 'NFE' : 'NFCE',
       tpDoc: mod === '55' ? 55 : 65,
       emissao,
+      tpNF: texto(ide, 'tpNF'),
       emitente: { ...emitente, crt: texto(emit, 'CRT') },
       destinatario: lerParte(dest, filho(dest, 'enderDest')),
       itens: filhos(infNFe, 'det').map(lerItem),

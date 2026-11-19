@@ -18,6 +18,7 @@ function simulacao(extra: Partial<ResultadoSimulacao> = {}): ResultadoSimulacao 
     percentualPJ: Big(62),
     notas2026Simuladas: false,
     itensExcluidos: 0,
+    itensSemReceita: 0,
     ...extra,
   };
 }
@@ -134,5 +135,17 @@ describe('Resumo', () => {
     expect(screen.queryByText(/sem crédito calculado/)).toBeNull();
     rerender(<Resumo simulacao={simulacao({ origemCompras: 'ESTIMADA' })} comprasSemCredito={4} />);
     expect(screen.queryByText(/sem crédito calculado/)).toBeNull();
+  });
+
+  it('itens de saída sem receita: aviso próprio com atalho para a Auditoria; zero não mostra', () => {
+    const aoVerAuditoria = vi.fn();
+    const { rerender } = render(<Resumo simulacao={simulacao({ itensSemReceita: 2 })} aoVerAuditoria={aoVerAuditoria} />);
+    expect(screen.getByText('2 itens de saída sem receita (transferência/remessa) não entram no faturamento.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Ver na Auditoria' }));
+    expect(aoVerAuditoria).toHaveBeenCalledWith('SEM_RECEITA');
+    rerender(<Resumo simulacao={simulacao({ itensSemReceita: 1 })} />);
+    expect(screen.getByText('1 item de saída sem receita (transferência/remessa) não entra no faturamento.')).toBeTruthy();
+    rerender(<Resumo simulacao={simulacao()} />);
+    expect(screen.queryByText(/sem receita/)).toBeNull();
   });
 });

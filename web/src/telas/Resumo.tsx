@@ -7,7 +7,7 @@ import { AVISO_LEGAL, NOTA_SEXTA_FAIXA } from './avisos';
 import './Resumo.css';
 
 /** O que o aviso conta: o atalho abre a Auditoria já filtrada nisso. */
-export type FocoAuditoria = 'EXCLUIDOS' | 'COMPRAS_SEM_CREDITO';
+export type FocoAuditoria = 'EXCLUIDOS' | 'COMPRAS_SEM_CREDITO' | 'SEM_RECEITA';
 
 export interface ResumoProps {
   simulacao: ResultadoSimulacao;
@@ -47,10 +47,18 @@ function explicacao({ veredito, diferencaMes }: ResultadoSimulacao): string | nu
   return null;
 }
 
-function AvisoComAuditoria({ children, aoVerAuditoria }: { children: string; aoVerAuditoria?: () => void }) {
+function AvisoComAuditoria({
+  children,
+  aoVerAuditoria,
+  tipo = 'alerta',
+}: {
+  children: string;
+  aoVerAuditoria?: () => void;
+  tipo?: 'alerta' | 'info';
+}) {
   return (
     <div className="resumo__excluidos">
-      <Alerta tipo="alerta">{children}</Alerta>
+      <Alerta tipo={tipo}>{children}</Alerta>
       {aoVerAuditoria && (
         <Botao variante="simples" onClick={aoVerAuditoria}>
           Ver na Auditoria
@@ -62,7 +70,7 @@ function AvisoComAuditoria({ children, aoVerAuditoria }: { children: string; aoV
 
 /** Aba Resumo: veredito, diferença, comparação lado a lado, composição de clientes e avisos. */
 export default function Resumo({ simulacao, sextaFaixa = false, notasCompra, comprasSemCredito = 0, aoVerAuditoria }: ResumoProps) {
-  const { simples, regular, veredito, itensExcluidos } = simulacao;
+  const { simples, regular, veredito, itensExcluidos, itensSemReceita } = simulacao;
   const pj = simulacao.percentualPJ.round(0);
   const pf = CEM.minus(pj);
   const reais = simulacao.origemCompras === 'REAL';
@@ -91,6 +99,13 @@ export default function Resumo({ simulacao, sextaFaixa = false, notasCompra, com
           {itensExcluidos === 1
             ? '1 item ficou fora da comparação porque não foi calculado nos dois cenários.'
             : `${itensExcluidos.toLocaleString('pt-BR')} itens ficaram fora da comparação porque não foram calculados nos dois cenários.`}
+        </AvisoComAuditoria>
+      )}
+      {itensSemReceita > 0 && (
+        <AvisoComAuditoria tipo="info" aoVerAuditoria={aoVerAuditoria && (() => aoVerAuditoria('SEM_RECEITA'))}>
+          {itensSemReceita === 1
+            ? '1 item de saída sem receita (transferência/remessa) não entra no faturamento.'
+            : `${itensSemReceita.toLocaleString('pt-BR')} itens de saída sem receita (transferência/remessa) não entram no faturamento.`}
         </AvisoComAuditoria>
       )}
       {reais && comprasSemCredito > 0 && (

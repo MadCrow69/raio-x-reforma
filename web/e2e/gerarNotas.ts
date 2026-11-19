@@ -181,7 +181,7 @@ export function xmlNFe(d: DadosNFe): { chave: string; xml: string } {
     )
     .join('');
   const infNFe = `<infNFe Id="NFe${chave}" versao="4.00">
-      <ide><cUF>${d.municipio.cUF}</cUF><mod>${d.mod}</mod><serie>1</serie><nNF>${d.numero}</nNF><dhEmi>${d.emissao}</dhEmi><finNFe>1</finNFe></ide>
+      <ide><cUF>${d.municipio.cUF}</cUF><mod>${d.mod}</mod><serie>1</serie><nNF>${d.numero}</nNF><dhEmi>${d.emissao}</dhEmi><tpNF>1</tpNF><finNFe>1</finNFe></ide>
       <emit><CNPJ>${d.emitente.cnpj}</CNPJ><xNome>${d.emitente.nome}</xNome>
         <enderEmit><cMun>${d.municipio.cMun}</cMun><xMun>${d.municipio.nome}</xMun><UF>${d.municipio.uf}</UF></enderEmit><IE>1111111</IE><CRT>${d.emitente.crt}</CRT></emit>
       ${dest}${dets}

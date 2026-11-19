@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { lerNFe } from './nfe.ts';
 import type { Documento } from './tipos.ts';
-import { xmlFixture } from './fixtures.ts';
+import { bytesFixture, xmlFixture } from './fixtures.ts';
 
 function doc(nome: string): Documento {
   const r = lerNFe(xmlFixture(nome), nome);
@@ -33,6 +33,14 @@ describe('lerNFe', () => {
     expect(d.itens[0].ibscbsNota?.cst).toBe('000');
     expect(d.itens[0].ibscbsNota?.vCBS.toString()).toBe('0.9');
     expect(d.itens[0].ibscbsNota?.vIBSUF.toString()).toBe('0.1');
+  });
+
+  it('lê tpNF (0 = entrada, 1 = saída) e o CFOP do item', () => {
+    const texto = new TextDecoder().decode(bytesFixture('nfe_sem_ibscbs.xml')).replace('<mod>55</mod>', '<mod>55</mod><tpNF>0</tpNF>');
+    const r = lerNFe(new DOMParser().parseFromString(texto, 'application/xml'), 'e.xml');
+    expect(r).toMatchObject({ tpNF: '0' });
+    expect(doc('nfe_sem_ibscbs.xml').tpNF).toBeUndefined();
+    expect(doc('nfe_sem_ibscbs.xml').itens[0].cfop).toBe('5102');
   });
 
   it('NFC-e 65: tipo NFCE e destinatário indefinido sem dest', () => {

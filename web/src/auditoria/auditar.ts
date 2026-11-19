@@ -1,5 +1,6 @@
 import Big from 'big.js';
 import { identificarGrupo, type Classificacoes } from '../classificacao/sugestoes';
+import { saidaSemReceita } from '../dominio/cfop';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
 import { emitidoAntesDoAnoSimulado } from '../motor/montarRequisicoes';
 import { chaveItem, type EstadoItem, type ErroMotor, type ItemCalculado, type OrigemMemoria } from '../motor/tipos';
@@ -55,7 +56,9 @@ function linhasDe(
       const v = validacao?.get(chaveItem(d.chave, it.numero));
       const errosValidacao = validacao && c?.estado === 'CALCULO_SIMULADO' ? (v?.erros ?? []) : [];
       const validacaoSemCalculo = validacao !== undefined && c?.estado === 'CALCULO_SIMULADO' && v?.estado !== 'CALCULO_SIMULADO';
-      if (errosValidacao.length > 0) achado = 'ERRO_MOTOR';
+      // Primeiro: fora do faturamento (mesma regra do simular), para a contagem bater com o aviso do Resumo.
+      if (papel === 'VENDA' && saidaSemReceita(it.cfop)) achado = 'SAIDA_SEM_RECEITA';
+      else if (errosValidacao.length > 0) achado = 'ERRO_MOTOR';
       else if (validacaoSemCalculo) achado = 'NAO_CALCULADO';
       else if (!c) achado = 'NAO_CALCULADO';
       else if (c.estado !== 'CALCULO_SIMULADO') achado = c.erros.length > 0 ? 'ERRO_MOTOR' : 'NAO_CALCULADO';

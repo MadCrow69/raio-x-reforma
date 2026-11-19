@@ -148,4 +148,24 @@ describe('auditar', () => {
       expect(l.achado).toBe('SEM_GRUPO_NA_NOTA');
     });
   });
+
+  describe('saída sem receita (CFOP de transferência/remessa)', () => {
+    const comCfop = (cfop: string, nota?: [string, string, string]) => ({ ...item(1, nota), cfop });
+
+    it('venda com CFOP de transferência vira SAIDA_SEM_RECEITA, sem comparar valores', () => {
+      const [l] = auditar([doc([comCfop('5152', ['1', '0', '0'])])], [], [calc(1, ['0.9', '0.1', '0'])]);
+      expect(l.achado).toBe('SAIDA_SEM_RECEITA');
+      expect(l.diferenca).toBeUndefined();
+    });
+    it('prevalece sobre erro do motor, para a contagem bater com o aviso do Resumo (o erro continua na linha)', () => {
+      const erros = [{ code: 'REG-011', title: 't', detail: 'd' }];
+      const [l] = auditar([doc([comCfop('5949')])], [], [calc(1, ['0', '0', '0'], { estado: 'INCONSISTENCIA_ENTRADA', erros })]);
+      expect(l.achado).toBe('SAIDA_SEM_RECEITA');
+      expect(l.erros.map((e) => e.code)).toEqual(['REG-011']);
+    });
+    it('compra com o mesmo CFOP não muda (a regra é da receita da empresa)', () => {
+      const [l] = auditar([], [doc([comCfop('5152', ['0.9', '0.1', '0'])])], [calc(1, ['0.9', '0.1', '0'])]);
+      expect(l.achado).toBe('OK');
+    });
+  });
 });

@@ -146,4 +146,14 @@ describe('analisar', () => {
     expect(atalho).toHaveLength(r.simulacao.itensExcluidos);
     expect(atalho.map((l) => l.item).sort()).toEqual([2, 3]);
   });
+
+  it('o atalho "Ver na Auditoria" dos itens sem receita mostra exatamente itensSemReceita linhas', async () => {
+    const transferencia = { ...item(2), cfop: '5152' };
+    const remessa = { ...item(3), cfop: '6949' };
+    const vendas = [doc('v1', 'PJ', [{ ...item(1), cfop: '5102' }, transferencia, remessa])];
+    const r = await analisar({ vendas, compras: [], parametros: PARAMETROS, origemCompras: ESTIMADA }, undefined, motorFalso({ SIMPLES_POR_DENTRO: ['30', '10', '0'], SIMPLES_POR_FORA: ['90', '5', '5'] }));
+    expect(r.simulacao.itensSemReceita).toBe(2);
+    const atalho = filtrar(r.auditoria, '', { ...SEM_FILTROS, achado: ['SAIDA_SEM_RECEITA'], papel: ['VENDA'] });
+    expect(atalho.map((l) => l.item)).toEqual([2, 3]);
+  });
 });

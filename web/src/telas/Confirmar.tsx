@@ -253,9 +253,9 @@ export default function Confirmar({ leitura, cnpjInicial, rascunho, aoVoltar, ao
         {ignoradosPorMotivo.length > 0 && (
           <ListaAgrupada
             titulo="Fora da análise"
-            rodape={`${contar(separacao.ignorados.length, 'nota', 'notas')} sem relação com este CNPJ ${
+            rodape={`${contar(separacao.ignorados.length, 'nota', 'notas')} ${
               separacao.ignorados.length === 1 ? 'não entra' : 'não entram'
-            } no cálculo.`}
+            } no cálculo deste CNPJ.`}
           >
             {ignoradosPorMotivo.map(([m, itens]) => (
               <ItemListaRecolhivel key={m} titulo={ROTULO_MOTIVO_IGNORADO[m]} valor={itens.length}>

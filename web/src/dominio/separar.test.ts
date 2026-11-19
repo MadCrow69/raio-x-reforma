@@ -57,6 +57,14 @@ describe('separar', () => {
     expect(r.ignorados[0].detalhe).toMatch(/empresa/i);
     expect(r.vendas.length + r.compras.length + r.ignorados.length).toBe(4);
   });
+  it('nota de entrada (tpNF=0) emitida pela empresa não é venda: ENTRADA_PROPRIA', () => {
+    const entrada = { ...doc('6', A, pj(B)), tpNF: '0' };
+    const saida = { ...doc('7', A, pj(B)), tpNF: '1' };
+    const r = separar([entrada, saida], A);
+    expect(r.vendas).toEqual([saida]);
+    expect(r.compras).toEqual([]);
+    expect(r.ignorados).toEqual([expect.objectContaining({ arquivo: '6.xml', motivo: 'ENTRADA_PROPRIA' })]);
+  });
   it('NFC-e sem destinatário emitida pela empresa é venda', () => {
     const d = doc('5', A);
     expect(separar([d], A).vendas).toEqual([d]);

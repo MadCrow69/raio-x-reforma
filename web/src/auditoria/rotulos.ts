@@ -7,6 +7,7 @@ export type Achado =
   | 'VALOR_DIVERGENTE'
   | 'SEM_GRUPO_NA_NOTA'
   | 'NOTA_ALIQUOTA_TESTE'
+  | 'SAIDA_SEM_RECEITA'
   | 'NAO_CALCULADO';
 
 export const ROTULO_ACHADO: Record<Achado, string> = {
@@ -15,6 +16,7 @@ export const ROTULO_ACHADO: Record<Achado, string> = {
   VALOR_DIVERGENTE: 'Valor divergente',
   SEM_GRUPO_NA_NOTA: 'Sem grupo IBS/CBS na nota',
   NOTA_ALIQUOTA_TESTE: 'Nota anterior a 2027 (alíquotas de teste)',
+  SAIDA_SEM_RECEITA: 'Saída sem receita (transferência/remessa)',
   NAO_CALCULADO: 'Não calculado',
 };
 
@@ -41,6 +43,7 @@ export const ROTULO_MOTIVO_IGNORADO: Record<MotivoIgnorado, string> = {
   DEVOLUCAO: 'Nota de devolução',
   DUPLICADO: 'Nota repetida',
   OUTRA_EMPRESA: 'Outra empresa',
+  ENTRADA_PROPRIA: 'Nota de entrada emitida pela empresa',
 };
 
 /** De onde vem o texto da memória de cálculo: nunca deixar a composta pelo app passar por saída do motor. */

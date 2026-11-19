@@ -10,7 +10,8 @@ export type MotivoIgnorado =
   | 'CANCELADA'
   | 'DEVOLUCAO'
   | 'DUPLICADO'
-  | 'OUTRA_EMPRESA';
+  | 'OUTRA_EMPRESA'
+  | 'ENTRADA_PROPRIA';
 
 export interface GrupoIbsCbsNota {
   cst: string;
@@ -50,6 +51,8 @@ export interface Documento {
   tpDoc: 55 | 65 | 91;
   /** ISO 8601 com offset, como no XML */
   emissao: string;
+  /** tpNF da NF-e/NFC-e como no XML: '0' entrada, '1' saída. Ausente na NFS-e. */
+  tpNF?: string;
   emitente: Parte & { crt?: string };
   destinatario?: Parte;
   itens: ItemDocumento[];

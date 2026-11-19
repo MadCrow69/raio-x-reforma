@@ -18,6 +18,7 @@ const SIMULACAO: ResultadoSimulacao = {
   percentualPJ: Big(50),
   notas2026Simuladas: false,
   itensExcluidos: 1,
+  itensSemReceita: 0,
 };
 
 const linha = (item: number, achado: LinhaAuditoria['achado']): LinhaAuditoria => ({
@@ -129,5 +130,20 @@ describe('Resultado', () => {
     expect(linhas).toHaveLength(1);
     expect(linhas[0].textContent).toContain('Compra');
     expect(screen.getByRole('button', { name: 'Remover filtro Papel: Compra' })).toBeTruthy();
+  });
+
+  it('o atalho de itens sem receita abre a Auditoria filtrada nesse achado', () => {
+    const p = props();
+    render(
+      <Resultado
+        {...p}
+        simulacao={{ ...SIMULACAO, itensExcluidos: 0, itensSemReceita: 1 }}
+        auditoria={[...p.auditoria, linha(6, 'SAIDA_SEM_RECEITA')]}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Ver na Auditoria' }));
+    const linhas = within(screen.getByRole('table')).getAllByRole('row').slice(1);
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0].textContent).toContain('Saída sem receita');
   });
 });
