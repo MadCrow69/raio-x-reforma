@@ -17,7 +17,7 @@ Público: **contador e empresário**, na mesma tela (topo para o empresário, ab
 ## 2. Objetivos, não-objetivos, anti-objetivos
 
 **Objetivos**
-- Demo pública que abre e funciona no primeiro clique (link do post).
+- Demo pública que abre e funciona no primeiro clique (link do post) — **adiada**: MVP roda só local (ver §10).
 - `docker compose up` sobe tudo localmente (quem clona o repo consegue rodar).
 - Resultado rastreável: cada número leva à memória de cálculo do motor oficial.
 
