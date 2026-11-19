@@ -33,6 +33,10 @@ export const ERRO_SEM_CLASSIFICACAO: Pick<ErroMotor, 'code' | 'title'> = {
   code: 'RXR-002',
   title: 'Classificação não confirmada para este item',
 };
+export const ERRO_IS_NAO_SUPORTADO: Pick<ErroMotor, 'code' | 'title'> = {
+  code: 'RXR-004',
+  title: 'Imposto Seletivo ainda não suportado nesta versão',
+};
 export const ERRO_SEM_MUNICIPIO: Pick<ErroMotor, 'code' | 'title'> = {
   code: 'RXR-003',
   title: 'Município da operação não identificado no documento',
@@ -55,11 +59,17 @@ export function localDaOperacao(doc: Documento): { municipio: string; uf: string
 const dinheiro = (v: Big) => v.toFixed(2);
 const percentual = (v: Big) => v.round(CASAS_PERCENTUAL).toString();
 
-function naoCalculado(doc: Documento, item: ItemDocumento, erro: Pick<ErroMotor, 'code' | 'title'>, detalhe: string): ItemCalculado {
+function naoCalculado(
+  doc: Documento,
+  item: ItemDocumento,
+  erro: Pick<ErroMotor, 'code' | 'title'>,
+  detalhe: string,
+  estado: 'NAO_CALCULADO' | 'NAO_IMPLEMENTADO' = 'NAO_CALCULADO',
+): ItemCalculado {
   return {
     chave: doc.chave,
     numero: item.numero,
-    estado: 'NAO_CALCULADO',
+    estado,
     vCBS: Big(0),
     vIBSUF: Big(0),
     vIBSMun: Big(0),
@@ -132,6 +142,11 @@ export function montarRequisicao(
       naoEnviados.push(naoCalculado(doc, item, ERRO_SEM_MUNICIPIO, 'Nem o destinatário nem o emitente informam município e UF'));
       continue;
     }
+    if (item.valorIS.gt(0)) {
+      // Sem bloco impostoSeletivo o motor regular responderia REG-013 (falso erro de entrada).
+      naoEnviados.push(naoCalculado(doc, item, ERRO_IS_NAO_SUPORTADO, `Valor de IS na nota: ${dinheiro(item.valorIS)}`, 'NAO_IMPLEMENTADO'));
+      continue;
+    }
     const { chave } = identificarGrupo(item);
     const classificacao = p.classificacoes[chave];
     if (!classificacao) {
@@ -146,7 +161,8 @@ export function montarRequisicao(
       ...(ncm ? { ncm } : nbs ? { nbs } : {}),
       cst: classificacao.cst,
       cClassTrib: classificacao.cClassTrib,
-      baseCalculo: dinheiro(item.baseCalculo),
+      // O motor regular recebe número JSON (como nos *-request.json capturados); valor com 2 casas.
+      baseCalculo: Number(dinheiro(item.baseCalculo)),
       ...(ncm ? { quantidade: QUANTIDADE_PADRAO, unidade: UNIDADE_PADRAO } : {}),
       aliquotasNominais,
     });

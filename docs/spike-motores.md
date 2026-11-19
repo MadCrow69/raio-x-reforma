@@ -61,3 +61,7 @@ Simples: `GET /api/calculadora/simples-nacional/atividades?data=2027-01-01` → 
 - `simples-erro-vsn019.json` (+ `-request`): HTTP **422** `application/problem+json`: `{type,title,status,detail,instance,timestamp,errors:[{type,title,code,pointer,detail}]}` (`VSN-019`, `pointer: "#/CRT"`).
 - `simples-nao-calculado.json` (+ `-request`): HTTP **200**; `cAtivSN=07` (só `tpDoc` 91) com `tpDoc=55` → item `estadoItem:"NAO_CALCULADO"`, `tribCalc` só com `vRBSNitem`, `tpRBSN`, `tpRBSNDescricao`; `total` só com `vRBSNtot`; sem `erros`.
 - Regular: erro de item vem em `objetos[].erros[]` com 200 (`regular-nfe-2027.json`); erro de operação (ex. `REG-018`) é 422 problem+json no mesmo formato.
+
+## Verificado ao vivo — cliente dos motores (Task 7)
+
+`npm --prefix web run test:live` (`web/src/motor/cliente.live.test.ts`, exige `docker compose up -d --build`; via Caddy `localhost:8080`): NF-e `SIMPLES_POR_DENTRO` → 200, CBS 26.12 / IBS 11.88; NFS-e `SIMPLES_POR_DENTRO` (tpDoc 91, atividade 07) → 200, mesmos valores; NF-e `SIMPLES_POR_FORA` e `REGULAR_AUDITORIA` (regime-geral, `baseCalculo` como número JSON) → 200, CBS 83.60 / IBS UF 0.48 / Mun 0.48; `dados-abertos` 2027 → 404 nas 3 rotas, cai na referência 8.8 / 0.05 / 0.05.

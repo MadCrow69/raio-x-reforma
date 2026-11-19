@@ -1,3 +1,4 @@
+import Big from 'big.js';
 import { describe, expect, it } from 'vitest';
 import { doc, item, nominais, opcao, parametros } from './fabricaTeste';
 import { dataEm2027, montarRequisicao } from './montarRequisicoes';
@@ -84,7 +85,7 @@ describe('montarRequisicao — motor regular', () => {
             ncm: '61091000',
             cst: '000',
             cClassTrib: '000001',
-            baseCalculo: '950.00',
+            baseCalculo: 950,
             quantidade: 1,
             unidade: 'UN',
             aliquotasNominais: { cbs: 8.8, ibsEstadual: 0.05, ibsMunicipal: 0.05 },
@@ -109,6 +110,19 @@ describe('montarRequisicao — motor regular', () => {
     expect(it.nbs).toBe('115010000');
     expect(it.ncm).toBeUndefined();
     expect(it.cClassTrib).toBe('200028');
+  });
+
+  it('item com Imposto Seletivo não é enviado: NAO_IMPLEMENTADO RXR-004', () => {
+    const d = doc({ itens: [item(1, { valorIS: Big('15') }), item(2)] });
+    const r = montarRequisicao(d, 'REGULAR_AUDITORIA', parametros(), nominais);
+    expect(r.numerosEnviados).toEqual([2]);
+    expect(r.naoEnviados[0]).toMatchObject({ numero: 1, estado: 'NAO_IMPLEMENTADO' });
+    expect(r.naoEnviados[0].erros[0]).toMatchObject({ code: 'RXR-004', title: 'Imposto Seletivo ainda não suportado nesta versão' });
+  });
+
+  it('no Simples o valor do IS segue no corpo', () => {
+    const r = montarRequisicao(doc({ itens: [item(1, { valorIS: Big('15') })] }), 'SIMPLES_POR_DENTRO', parametros(), nominais);
+    expect((r.corpo as { itens: { valorImpostoSeletivo: string }[] }).itens[0].valorImpostoSeletivo).toBe('15.00');
   });
 
   it('sem município em nenhuma parte: nenhum item enviado', () => {
