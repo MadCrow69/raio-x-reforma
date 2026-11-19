@@ -1,0 +1,231 @@
+import Big from 'big.js';
+import { describe, expect, it } from 'vitest';
+import type { Documento, ItemDocumento, TipoDocumento } from '../leitura/tipos';
+import type { EstadoItem, ItemCalculado } from '../motor/tipos';
+import type { AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
+import { EMPATE_PERCENTUAL, simular, type OrigemCompras } from './simular';
+
+/*
+ * Números redondos montados à mão. Atividade '01': DAS completo 10%, CBS 3% + IBS 1% dentro do DAS,
+ * DAS sem CBS/IBS 6%. Uma venda de R$ 1.000,00 dá:
+ *   Simples (DAS completo)          = 1000 × 10% = 100
+ *   Regular (DAS sem CBS/IBS + fora) = 1000 × 6% + 100 (vCBS 90 + vIBSUF 5 + vIBSMun 5) − créditos
+ *   Crédito do cliente PJ            = dentro 40 (30 + 10 + 0) × fora 100
+ */
+const ALIQ: Record<string, AliquotasSimples> = {
+  '01': { anexo: 'I', faixa: 2, efetivaTotal: Big(10), pCBSSN: Big(3), pIBSSN: Big(1), dasSemCbsIbs: Big(6) },
+};
+const ATIVIDADE: Partial<Record<TipoDocumento, string>> = { NFE: '01' };
+
+const item = (numero: number, base = '1000'): ItemDocumento => ({
+  numero,
+  descricao: `Item ${numero}`,
+  ncm: '61091000',
+  baseCalculo: Big(base),
+  valorIS: Big(0),
+});
+
+function venda(chave: string, extra: Partial<Documento> = {}): Documento {
+  return {
+    chave,
+    numero: chave,
+    tipo: 'NFE',
+    tpDoc: 55,
+    emissao: '2027-01-10T10:00:00-03:00',
+    emitente: { documento: '11222333000181', tipo: 'PJ' },
+    destinatario: { documento: '99888777000166', tipo: 'PJ' },
+    itens: [item(1)],
+    arquivo: `${chave}.xml`,
+    ...extra,
+  };
+}
+
+const calc = (chave: string, numero: number, v: [string, string, string], estado: EstadoItem = 'CALCULO_SIMULADO'): ItemCalculado => ({
+  chave,
+  numero,
+  estado,
+  vCBS: Big(v[0]),
+  vIBSUF: Big(v[1]),
+  vIBSMun: Big(v[2]),
+  erros: [],
+  memoria: '',
+});
+const DENTRO: [string, string, string] = ['30', '10', '0'];
+const FORA: [string, string, string] = ['90', '5', '5'];
+
+const real = (creditos: string): OrigemCompras => ({ tipo: 'REAL', creditos: Big(creditos) });
+
+/** Uma venda por chave, item 1 de R$ 1.000,00, calculado nos dois cenários com DENTRO/FORA. */
+function entrada(vendas: Documento[], origemCompras: OrigemCompras, fora = FORA, dentro = DENTRO) {
+  return {
+    vendas,
+    compras: [],
+    porDentro: vendas.flatMap((v) => v.itens.map((i) => calc(v.chave, i.numero, dentro))),
+    porFora: vendas.flatMap((v) => v.itens.map((i) => calc(v.chave, i.numero, fora))),
+    atividadePorTipo: ATIVIDADE,
+    aliquotasPorAtividade: ALIQ,
+    origemCompras,
+  };
+}
+
+describe('simular', () => {
+  it('(a) regular mais barato e crédito PJ maior no regular → REGULAR_TENDE_MELHOR', () => {
+    // Simples 100; regular 60 + 100 − 80 = 80; diferença 20; crédito PJ 40 × 100.
+    const r = simular(entrada([venda('A')], real('80')));
+    expect(r.simples.impostoMes.toString()).toBe('100');
+    expect(r.regular.impostoMes.toString()).toBe('80');
+    expect(r.diferencaMes.toString()).toBe('20');
+    expect(r.simples.creditoClientePJMes.toString()).toBe('40');
+    expect(r.regular.creditoClientePJMes.toString()).toBe('100');
+    expect(r.veredito).toBe('REGULAR_TENDE_MELHOR');
+    expect(r.origemCompras).toBe('REAL');
+    expect(r.faturamentoMes.toString()).toBe('1000');
+    expect(r.percentualPJ.toString()).toBe('100');
+    expect(r.itensExcluidos).toBe(0);
+  });
+
+  it('(b) Simples mais barato e crédito PJ maior no regular → DEPENDE_DOS_CLIENTES', () => {
+    // Sem créditos de compras: regular 60 + 100 = 160; diferença −60; crédito PJ 40 × 100.
+    const r = simular(entrada([venda('A')], real('0')));
+    expect(r.regular.impostoMes.toString()).toBe('160');
+    expect(r.diferencaMes.toString()).toBe('-60');
+    expect(r.veredito).toBe('DEPENDE_DOS_CLIENTES');
+  });
+
+  it('regular mais barato mas crédito PJ maior no Simples → DEPENDE_DOS_CLIENTES', () => {
+    // Por fora o item sai com 0 (ex.: alíquota zero), por dentro com 40: regular 60 − 0 = 60 < 100.
+    const r = simular(entrada([venda('A')], real('0'), ['0', '0', '0']));
+    expect(r.diferencaMes.toString()).toBe('40');
+    expect(r.regular.creditoClientePJMes.toString()).toBe('0');
+    expect(r.veredito).toBe('DEPENDE_DOS_CLIENTES');
+  });
+
+  it('(c) diferença de 0,3% do imposto do Simples → EMPATE', () => {
+    // regular 60 + 100 − 60,3 = 99,7; diferença 0,3 < 0,5% × 100 = 0,5.
+    const r = simular(entrada([venda('A')], real('60.3')));
+    expect(r.diferencaMes.toString()).toBe('0.3');
+    expect(r.veredito).toBe('EMPATE');
+  });
+
+  it('diferença de exatamente 0,5% não é empate (limite estrito)', () => {
+    expect(EMPATE_PERCENTUAL.toString()).toBe('0.5');
+    const r = simular(entrada([venda('A')], real('60.5')));
+    expect(r.diferencaMes.toString()).toBe('0.5');
+    expect(r.veredito).toBe('REGULAR_TENDE_MELHOR');
+  });
+
+  it('(d) compras ESTIMADA 40% → créditos = faturamento × 40% × alíquota nominal', () => {
+    // 1000 × 40% × 26,5% = 106; regular 60 + 100 − 106 = 54.
+    const r = simular(
+      entrada([venda('A')], { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('26.5') }),
+    );
+    expect(r.origemCompras).toBe('ESTIMADA');
+    expect(r.regular.impostoMes.toString()).toBe('54');
+  });
+
+  it('(e) notas de jan e fev → meses 2027-01 e 2027-02 e média mensal', () => {
+    // Totais: faturamento 2000, Simples 200, regular 120 + 200 − 160 = 160, crédito PJ 80 × 200.
+    const r = simular(
+      entrada([venda('F', { emissao: '2027-02-10T10:00:00-03:00' }), venda('J')], real('160')),
+    );
+    expect(r.meses).toEqual(['2027-01', '2027-02']);
+    expect(r.faturamentoMes.toString()).toBe('1000');
+    expect(r.simples.impostoMes.toString()).toBe('100');
+    expect(r.regular.impostoMes.toString()).toBe('80');
+    expect(r.simples.creditoClientePJMes.toString()).toBe('40');
+    expect(r.regular.creditoClientePJMes.toString()).toBe('100');
+    expect(r.notas2026Simuladas).toBe(false);
+  });
+
+  it('média de 3 meses não termina: 40 casas, sem arredondar, independente do Big.DP global', () => {
+    const dpGlobal = Big.DP;
+    Big.DP = 2;
+    try {
+      const r = simular(
+        entrada(
+          [
+            venda('J'),
+            venda('F', { emissao: '2027-02-10T10:00:00-03:00', itens: [] }),
+            venda('M', { emissao: '2027-03-10T10:00:00-03:00', itens: [] }),
+          ],
+          real('0'),
+        ),
+      );
+      expect(r.meses).toHaveLength(3);
+      expect(r.faturamentoMes.toString()).toBe(`333.${'3'.repeat(40)}`);
+    } finally {
+      Big.DP = dpGlobal;
+    }
+  });
+
+  it('(f) nota emitida em 2026 → notas2026Simuladas e mês levado a 2027', () => {
+    const r = simular(entrada([venda('A', { emissao: '2026-03-15T10:00:00-03:00' })], real('80')));
+    expect(r.notas2026Simuladas).toBe(true);
+    expect(r.meses).toEqual(['2027-03']);
+  });
+
+  it('créditos maiores que os débitos → imposto do regular negativo (saldo credor), sem piso em 0', () => {
+    // 60 + 100 − 500 = −340.
+    const r = simular(entrada([venda('A')], real('500')));
+    expect(r.regular.impostoMes.toString()).toBe('-340');
+    expect(r.diferencaMes.toString()).toBe('440');
+    expect(r.veredito).toBe('REGULAR_TENDE_MELHOR');
+  });
+
+  it('itens fora do cálculo nos dois cenários ou sem atividade ficam de fora e são contados', () => {
+    const nfe = venda('A', { itens: [item(1), item(2), item(3), item(4)] });
+    const nfse = venda('S', { tipo: 'NFSE', tpDoc: 91, itens: [item(1)] }); // NFSE sem atividade
+    const r = simular({
+      vendas: [nfe, nfse],
+      compras: [],
+      porDentro: [calc('A', 1, DENTRO), calc('A', 2, DENTRO), calc('A', 4, DENTRO), calc('S', 1, DENTRO)],
+      porFora: [
+        calc('A', 1, FORA),
+        calc('A', 2, FORA, 'FALHA_TECNICA'),
+        calc('A', 3, FORA),
+        calc('A', 4, FORA),
+        calc('S', 1, FORA),
+      ],
+      atividadePorTipo: ATIVIDADE,
+      aliquotasPorAtividade: ALIQ,
+      origemCompras: real('0'),
+    });
+    // Entram só A/1 e A/4: faturamento 2000, Simples 200, regular 120 + 200 = 320.
+    expect(r.itensExcluidos).toBe(3);
+    expect(r.faturamentoMes.toString()).toBe('2000');
+    expect(r.simples.impostoMes.toString()).toBe('200');
+    expect(r.regular.impostoMes.toString()).toBe('320');
+    expect(r.regular.creditoClientePJMes.toString()).toBe('200');
+  });
+
+  it('atividade sem alíquota calculada também exclui o item', () => {
+    const r = simular({ ...entrada([venda('A')], real('0')), atividadePorTipo: { NFE: '99' } });
+    expect(r.itensExcluidos).toBe(1);
+    expect(r.faturamentoMes.toString()).toBe('0');
+  });
+
+  it('sem vendas a PJ: crédito 0 nos dois cenários e o custo decide', () => {
+    const pf = { destinatario: { documento: '12345678909', tipo: 'PF' as const } };
+    const regular = simular(entrada([venda('A', pf)], real('80')));
+    expect(regular.simples.creditoClientePJMes.toString()).toBe('0');
+    expect(regular.regular.creditoClientePJMes.toString()).toBe('0');
+    expect(regular.percentualPJ.toString()).toBe('0');
+    expect(regular.veredito).toBe('REGULAR_TENDE_MELHOR');
+    const simples = simular(entrada([venda('A', pf)], real('0')));
+    expect(simples.veredito).toBe('SIMPLES_TENDE_MELHOR');
+  });
+
+  it('percentualPJ considera só os itens incluídos', () => {
+    const pj = venda('A');
+    const pf = venda('B', { destinatario: { documento: '12345678909', tipo: 'PF' }, itens: [item(1, '3000')] });
+    const r = simular(entrada([pj, pf], real('0')));
+    expect(r.percentualPJ.toString()).toBe('25');
+    const soPj = simular({ ...entrada([pj, pf], real('0')), porFora: [calc('A', 1, FORA)] });
+    expect(soPj.itensExcluidos).toBe(1);
+    expect(soPj.percentualPJ.toString()).toBe('100');
+  });
+
+  it('sem vendas → erro (não há mês para tirar a média)', () => {
+    expect(() => simular(entrada([], real('0')))).toThrow(RangeError);
+  });
+});

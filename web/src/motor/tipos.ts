@@ -106,3 +106,6 @@ export interface ObjetoRegularJson {
 export interface RespostaRegularJson {
   objetos: ObjetoRegularJson[];
 }
+
+/** Chave de junção documento + item (chave de acesso e número do item, nunca texto digitado). */
+export const chaveItem = (chave: string, numero: number) => `${chave}\u0000${numero}`;

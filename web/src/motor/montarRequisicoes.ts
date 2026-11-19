@@ -18,7 +18,7 @@ export const URL_REGULAR = '/motor/regular/api/calculadora/observabilidade/regim
 const VERSAO_SIMPLES = '2.0.0';
 const VERSAO_REGULAR = '1.0.0';
 /** Ano de vigência simulado (primeiro ano da cobrança de CBS/IBS-teste da LC 214/2025: 2027, ver spike). */
-const ANO_SIMULADO = '2027';
+export const ANO_SIMULADO = '2027';
 /** Casas máximas dos percentuais pCBSSN/pIBSSN enviados ao Simples (o motor aceita string decimal). */
 const CASAS_PERCENTUAL = 4;
 /** O motor regular exige quantidade/unidade para itens com NCM (como nos exemplos do spike); item de nota não as carrega aqui. */

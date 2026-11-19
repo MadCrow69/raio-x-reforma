@@ -1,7 +1,7 @@
 import Big from 'big.js';
 import { identificarGrupo, type Classificacoes } from '../classificacao/sugestoes';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
-import type { EstadoItem, ErroMotor, ItemCalculado } from '../motor/tipos';
+import { chaveItem, type EstadoItem, type ErroMotor, type ItemCalculado } from '../motor/tipos';
 import type { Achado } from './rotulos';
 
 export type { Achado } from './rotulos';
@@ -26,8 +26,6 @@ export interface LinhaAuditoria {
 }
 
 export const TOLERANCIA = Big('0.01'); // por tributo, em R$
-
-const chaveItem = (chave: string, numero: number) => `${chave}\u0000${numero}`;
 
 function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<string, ItemCalculado>, classificacoes: Classificacoes): LinhaAuditoria[] {
   const linhas: LinhaAuditoria[] = [];

@@ -1,4 +1,5 @@
 import Big from 'big.js';
+import { calc } from '../../dominio/decimal';
 import dados from './anexos-2027.json';
 
 /**
@@ -65,13 +66,6 @@ const TRIBUTOS_DO_SUBLIMITE = ['ICMS', 'ISS', 'IBS'] as const;
  */
 const ISS_MAXIMO = Big(5);
 
-/**
- * Construtor com casas decimais próprias para as divisões deste módulo, independente do Big.DP
- * global. 40 casas: as divisões por RBT12 podem não terminar; o erro fica abaixo de 1e-38 ponto.
- */
-const BigCalc = Big();
-BigCalc.DP = 40;
-const calc = (v: Big) => new BigCalc(v);
 
 const ANEXOS: readonly Anexo[] = ['I', 'II', 'III', 'IV', 'V'];
 
@@ -188,7 +182,7 @@ export function percentuaisPorTributo(anexo: Anexo, rbt12: Big): PercentuaisPorT
     percentuais = percentuaisDaFaixa(ef, faixa);
   }
 
-  // Big(...) devolve tudo no construtor global (BigCalc é só para as divisões internas).
+  // Big(...) devolve tudo no construtor global (calc é só para as divisões internas).
   const out: Record<string, Big> = {};
   for (const [t, v] of Object.entries(percentuais)) out[t] = Big(v);
   return { faixa: indice + 1, percentuais: out };

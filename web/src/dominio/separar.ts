@@ -1,6 +1,7 @@
 import Big from 'big.js';
 import type { Documento, DocumentoIgnorado } from '../leitura/tipos';
 import { normalizarCnpj } from './cnpj';
+import { calc } from './decimal';
 
 export interface Separacao {
   vendas: Documento[];
@@ -56,6 +57,6 @@ export function participacaoPJ(vendas: Documento[]): { pj: Big; pf: Big; percent
     else pf = pf.plus(total);
   }
   const todo = pj.plus(pf);
-  const percentualPJ = todo.eq(0) ? new Big(0) : pj.div(todo).times(100);
+  const percentualPJ = todo.eq(0) ? new Big(0) : Big(calc(pj).div(todo).times(100));
   return { pj, pf, percentualPJ };
 }
