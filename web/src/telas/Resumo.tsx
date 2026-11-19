@@ -12,6 +12,8 @@ export interface ResumoProps {
   sextaFaixa?: boolean;
   /** Notas de compra lidas (só informa no selo de compras reais). */
   notasCompra?: number;
+  /** Itens de compra sem crédito calculável: o crédito (e o regime regular) pode estar subestimado. */
+  comprasSemCredito?: number;
   /** Abre a aba Auditoria (atalho do aviso de itens fora da comparação). */
   aoVerAuditoria?: () => void;
 }
@@ -42,8 +44,21 @@ function explicacao({ veredito, diferencaMes }: ResultadoSimulacao): string | nu
   return null;
 }
 
+function AvisoComAuditoria({ children, aoVerAuditoria }: { children: string; aoVerAuditoria?: () => void }) {
+  return (
+    <div className="resumo__excluidos">
+      <Alerta tipo="alerta">{children}</Alerta>
+      {aoVerAuditoria && (
+        <Botao variante="simples" onClick={aoVerAuditoria}>
+          Ver na Auditoria
+        </Botao>
+      )}
+    </div>
+  );
+}
+
 /** Aba Resumo: veredito, diferença, comparação lado a lado, composição de clientes e avisos. */
-export default function Resumo({ simulacao, sextaFaixa = false, notasCompra, aoVerAuditoria }: ResumoProps) {
+export default function Resumo({ simulacao, sextaFaixa = false, notasCompra, comprasSemCredito = 0, aoVerAuditoria }: ResumoProps) {
   const { simples, regular, veredito, itensExcluidos } = simulacao;
   const pj = simulacao.percentualPJ.round(0);
   const pf = CEM.minus(pj);
@@ -69,18 +84,18 @@ export default function Resumo({ simulacao, sextaFaixa = false, notasCompra, aoV
       {simulacao.notas2026Simuladas && <Alerta tipo="info">Notas de 2026 simuladas como se fossem de 2027.</Alerta>}
       {sextaFaixa && <Alerta tipo="info">{NOTA_SEXTA_FAIXA}</Alerta>}
       {itensExcluidos > 0 && (
-        <div className="resumo__excluidos">
-          <Alerta tipo="alerta">
-            {itensExcluidos === 1
-              ? '1 item ficou fora da comparação porque não foi calculado nos dois cenários.'
-              : `${itensExcluidos.toLocaleString('pt-BR')} itens ficaram fora da comparação porque não foram calculados nos dois cenários.`}
-          </Alerta>
-          {aoVerAuditoria && (
-            <Botao variante="simples" onClick={aoVerAuditoria}>
-              Ver na Auditoria
-            </Botao>
-          )}
-        </div>
+        <AvisoComAuditoria aoVerAuditoria={aoVerAuditoria}>
+          {itensExcluidos === 1
+            ? '1 item ficou fora da comparação porque não foi calculado nos dois cenários.'
+            : `${itensExcluidos.toLocaleString('pt-BR')} itens ficaram fora da comparação porque não foram calculados nos dois cenários.`}
+        </AvisoComAuditoria>
+      )}
+      {reais && comprasSemCredito > 0 && (
+        <AvisoComAuditoria aoVerAuditoria={aoVerAuditoria}>
+          {`${comprasSemCredito.toLocaleString('pt-BR')} ${
+            comprasSemCredito === 1 ? 'item de compra sem crédito calculado' : 'itens de compra sem crédito calculado'
+          }; o crédito pode estar subestimado.`}
+        </AvisoComAuditoria>
       )}
 
       <section className="resumo__cartao">

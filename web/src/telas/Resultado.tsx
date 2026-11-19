@@ -19,6 +19,8 @@ export interface ResultadoProps {
   sextaFaixa: boolean;
   /** Notas de compra lidas, quando há. */
   notasCompra?: number;
+  /** Itens de compra sem crédito calculável (compras reais). */
+  comprasSemCredito?: number;
   aoNovaAnalise: () => void;
 }
 
@@ -27,7 +29,7 @@ type Aba = 'RESUMO' | 'AUDITORIA' | 'MEMORIA';
 const ORDEM_ACHADOS = Object.keys(ROTULO_ACHADO) as (keyof typeof ROTULO_ACHADO)[];
 
 /** Passo 3: resultado em três abas. Auditoria e Memória são listas mínimas aqui; a tabela completa vem na tarefa seguinte. */
-export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaixa, notasCompra, aoNovaAnalise }: ResultadoProps) {
+export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaixa, notasCompra, comprasSemCredito, aoNovaAnalise }: ResultadoProps) {
   const idBase = useId();
   const [aba, setAba] = useState<Aba>('RESUMO');
   const comAchado = auditoria.filter((l) => l.achado !== 'OK');
@@ -65,6 +67,7 @@ export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaix
             simulacao={simulacao}
             sextaFaixa={sextaFaixa}
             notasCompra={notasCompra}
+            comprasSemCredito={comprasSemCredito}
             aoVerAuditoria={() => setAba('AUDITORIA')}
           />
         )}

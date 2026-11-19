@@ -24,6 +24,8 @@ export interface EntradaAnalise {
 export interface ResultadoAnalise {
   auditoria: LinhaAuditoria[];
   simulacao: ResultadoSimulacao;
+  /** Só em compras REAL: itens de compra sem crédito calculável (crédito possivelmente subestimado). */
+  comprasSemCredito: number;
 }
 
 type Calcular = typeof calcularNoMotor;
@@ -61,8 +63,8 @@ export async function analisar(
   const porFora = await rodada(vendas, 'SIMPLES_POR_FORA');
   const comprasCalculadas = compras.length > 0 ? await rodada(compras, 'REGULAR_AUDITORIA') : [];
 
-  const origem: OrigemCompras =
-    origemCompras.tipo === 'REAL' ? { tipo: 'REAL', creditos: somarCreditosCompras(compras, comprasCalculadas) } : origemCompras;
+  const somados = origemCompras.tipo === 'REAL' ? somarCreditosCompras(compras, comprasCalculadas) : null;
+  const origem: OrigemCompras = somados ? { tipo: 'REAL', creditos: somados.creditos } : origemCompras;
 
   const simulacao = simular({
     vendas,
@@ -74,5 +76,5 @@ export async function analisar(
     origemCompras: origem,
   });
   const auditoria = auditar(vendas, compras, [...porDentro, ...comprasCalculadas], parametros.classificacoes);
-  return { auditoria, simulacao };
+  return { auditoria, simulacao, comprasSemCredito: somados?.itensSemCredito ?? 0 };
 }

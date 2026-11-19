@@ -76,6 +76,7 @@ describe('analisar', () => {
     expect(r.simulacao.origemCompras).toBe('REAL');
     expect(r.simulacao.regular.impostoMes.toString()).toBe('100');
     expect(r.auditoria.filter((l) => l.papel === 'COMPRA')).toHaveLength(2);
+    expect(r.comprasSemCredito).toBe(0);
   });
 
   it('progresso conta documentos de todas as rodadas (M = vendas × 2 + compras)', async () => {
@@ -109,5 +110,18 @@ describe('analisar', () => {
     expect(usaSextaFaixa({ ...PARAMETROS, aliquotasSimples: { '01': faixa6 } })).toBe(true);
     expect(usaSextaFaixa({ ...PARAMETROS, aliquotasSimples: { '01': ALIQ['01'], '02': faixa6 } })).toBe(false);
     expect(usaSextaFaixa({ ...PARAMETROS, atividadePorTipo: {} })).toBe(false);
+  });
+
+  it('compras REAL com item sem crédito (falha parcial) informa a contagem; ESTIMADA informa 0', async () => {
+    const compras = [doc('c1', 'PJ', [item(1), item(2)])];
+    const parcial = vi.fn(async (docs: Documento[], cenario: Cenario) => {
+      const itens = docs.flatMap((d) => calculados(d, ['30', '10', '0'], 'CALCULO_SIMULADO'));
+      // na rodada das compras, o item 2 falha tecnicamente
+      return cenario === 'REGULAR_AUDITORIA' ? itens.map((i) => (i.numero === 2 ? { ...i, estado: 'FALHA_TECNICA' as const } : i)) : itens;
+    });
+    const real = await analisar({ vendas: [doc('v1', 'PJ')], compras, parametros: PARAMETROS, origemCompras: REAL }, undefined, parcial);
+    expect(real.comprasSemCredito).toBe(1);
+    const estimada = await analisar({ vendas: [doc('v1', 'PJ')], compras: [], parametros: PARAMETROS, origemCompras: ESTIMADA }, undefined, parcial);
+    expect(estimada.comprasSemCredito).toBe(0);
   });
 });

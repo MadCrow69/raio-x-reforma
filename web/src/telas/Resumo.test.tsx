@@ -118,4 +118,21 @@ describe('Resumo', () => {
       unmount();
     }
   });
+
+  it('compras reais com itens sem crédito: aviso de crédito subestimado com atalho para a Auditoria', () => {
+    const aoVerAuditoria = vi.fn();
+    render(<Resumo simulacao={simulacao()} comprasSemCredito={2} aoVerAuditoria={aoVerAuditoria} />);
+    expect(screen.getByText('2 itens de compra sem crédito calculado; o crédito pode estar subestimado.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Ver na Auditoria' }));
+    expect(aoVerAuditoria).toHaveBeenCalledTimes(1);
+  });
+
+  it('singular, zero e compras estimadas não mostram o aviso errado', () => {
+    const { rerender } = render(<Resumo simulacao={simulacao()} comprasSemCredito={1} />);
+    expect(screen.getByText('1 item de compra sem crédito calculado; o crédito pode estar subestimado.')).toBeTruthy();
+    rerender(<Resumo simulacao={simulacao()} comprasSemCredito={0} />);
+    expect(screen.queryByText(/sem crédito calculado/)).toBeNull();
+    rerender(<Resumo simulacao={simulacao({ origemCompras: 'ESTIMADA' })} comprasSemCredito={4} />);
+    expect(screen.queryByText(/sem crédito calculado/)).toBeNull();
+  });
 });

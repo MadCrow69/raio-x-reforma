@@ -43,9 +43,9 @@ describe('Calculando', () => {
     expect(screen.getByRole('heading', { name: /Calculando/ })).toBeTruthy();
     act(() => progresso(12, 340));
     expect(screen.getByText('12 de 340 notas')).toBeTruthy();
-    const resultado = { auditoria: [], simulacao: SIMULACAO };
+    const resultado = { auditoria: [], simulacao: SIMULACAO, comprasSemCredito: 2 };
     await act(async () => concluir(resultado));
-    expect(p.aoConcluir).toHaveBeenCalledWith(resultado.auditoria, SIMULACAO);
+    expect(p.aoConcluir).toHaveBeenCalledWith(resultado.auditoria, SIMULACAO, 2);
   });
 
   it('RangeError do simular: mensagem dele, sem veredito, "Voltar e revisar" volta ao passo 2', async () => {

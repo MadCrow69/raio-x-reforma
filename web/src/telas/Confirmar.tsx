@@ -26,7 +26,7 @@ import Botao from '../ui/componentes/Botao';
 import Campo, { CampoNumero } from '../ui/componentes/Campo';
 import Esqueleto from '../ui/componentes/Esqueleto';
 import ListaAgrupada, { ItemListaRecolhivel } from '../ui/componentes/ListaAgrupada';
-import { contar, formatarMoeda } from '../ui/formatar';
+import { contar, formatarMoeda, formatarNumeroBR } from '../ui/formatar';
 import ArquivosIgnorados from './ArquivosIgnorados';
 import { NOTA_SEXTA_FAIXA } from './avisos';
 import './Confirmar.css';
@@ -35,16 +35,29 @@ import { opcaoEscolhida } from './escolhaClassificacao';
 import SeletorAtividade from './SeletorAtividade';
 import { useCarregamento } from './useCarregamento';
 
+/** O que a pessoa preencheu no passo 2 (só em memória): permite voltar do passo 3 sem perder nada. */
+export interface RascunhoConfirmacao {
+  cnpjTexto: string;
+  rbt12: Big | null;
+  folha: Big | null;
+  percentualCompras: Big | null;
+  atividadeEscolhida: Record<string, string>;
+  trocas: Record<string, string>;
+}
+
 export interface ResultadoConfirmacao {
   cnpjEmpresa: string;
   parametros: ParametrosCalculo;
   origemCompras: OrigemCompras;
+  rascunho: RascunhoConfirmacao;
 }
 
 export interface ConfirmarProps {
   leitura: ResultadoLeitura;
   /** CNPJ detectado nas notas (o mais frequente como emitente). */
   cnpjInicial: string;
+  /** Preenchimento anterior (volta do passo 3): restaura cada campo e cada escolha de classificação. */
+  rascunho?: RascunhoConfirmacao;
   aoVoltar: () => void;
   aoConfirmar: (resultado: ResultadoConfirmacao) => void;
 }
@@ -68,15 +81,18 @@ const GRUPOS = [
 type IdGrupo = (typeof GRUPOS)[number]['id'];
 
 /** Primeiro ponto do fluxo que exige uma decisão da pessoa: cadastro da empresa, regime e classificação. */
-export default function Confirmar({ leitura, cnpjInicial, aoVoltar, aoConfirmar }: ConfirmarProps) {
+export default function Confirmar({ leitura, cnpjInicial, rascunho, aoVoltar, aoConfirmar }: ConfirmarProps) {
   const idMotivo = useId();
-  const [cnpjTexto, setCnpjTexto] = useState(cnpjInicial);
-  const [cnpjEfetivo, setCnpjEfetivo] = useState(normalizarCnpj(cnpjInicial));
-  const [rbt12, setRbt12] = useState<Big | null>(null);
-  const [folha, setFolha] = useState<Big | null>(null);
-  const [percentualCompras, setPercentualCompras] = useState<Big | null>(new Big(PERCENTUAL_COMPRAS_PADRAO));
-  const [atividadeEscolhida, setAtividadeEscolhida] = useState<Partial<Record<IdGrupo, string>>>({});
-  const [trocas, setTrocas] = useState<Record<string, string>>({});
+  const inicialCnpj = rascunho?.cnpjTexto ?? cnpjInicial;
+  const [cnpjTexto, setCnpjTexto] = useState(inicialCnpj);
+  const [cnpjEfetivo, setCnpjEfetivo] = useState(normalizarCnpj(inicialCnpj));
+  const [rbt12, setRbt12] = useState<Big | null>(rascunho?.rbt12 ?? null);
+  const [folha, setFolha] = useState<Big | null>(rascunho?.folha ?? null);
+  const [percentualCompras, setPercentualCompras] = useState<Big | null>(
+    rascunho ? rascunho.percentualCompras : new Big(PERCENTUAL_COMPRAS_PADRAO),
+  );
+  const [atividadeEscolhida, setAtividadeEscolhida] = useState<Partial<Record<IdGrupo, string>>>(rascunho?.atividadeEscolhida ?? {});
+  const [trocas, setTrocas] = useState<Record<string, string>>(rascunho?.trocas ?? {});
   const [calculando, setCalculando] = useState(false);
 
   const atividades = useCarregamento(carregarAtividades);
@@ -195,6 +211,7 @@ export default function Confirmar({ leitura, cnpjInicial, aoVoltar, aoConfirmar 
         cnpjEmpresa: cnpjEfetivo,
         parametros: { classificacoes, atividadePorTipo, aliquotasSimples: aliquotasPorAtividade },
         origemCompras,
+        rascunho: { cnpjTexto, rbt12: rbt12Valido, folha, percentualCompras, atividadeEscolhida, trocas },
       });
     } finally {
       setCalculando(false);
@@ -258,6 +275,7 @@ export default function Confirmar({ leitura, cnpjInicial, aoVoltar, aoConfirmar 
             rotulo="Faturamento dos últimos 12 meses"
             prefixo="R$"
             aoMudar={setRbt12}
+            textoInicial={textoMoeda(rascunho?.rbt12)}
             erro={rbt12Erro}
             ajuda={AJUDA_RBT12}
             placeholder="0,00"
@@ -292,6 +310,7 @@ export default function Confirmar({ leitura, cnpjInicial, aoVoltar, aoConfirmar 
                 rotulo="Folha de salários dos últimos 12 meses"
                 prefixo="R$"
                 aoMudar={setFolha}
+                textoInicial={textoMoeda(rascunho?.folha)}
                 ajuda={AJUDA_FOLHA}
                 placeholder="0,00"
               />
@@ -317,7 +336,7 @@ export default function Confirmar({ leitura, cnpjInicial, aoVoltar, aoConfirmar 
               rotulo="Compras ≈ % do faturamento"
               selo="estimado"
               sufixo="%"
-              textoInicial={PERCENTUAL_COMPRAS_PADRAO}
+              textoInicial={rascunho ? textoPercentual(rascunho.percentualCompras) : PERCENTUAL_COMPRAS_PADRAO}
               aoMudar={setPercentualCompras}
               erro={percentualInvalido ? 'Informe um percentual entre 0 e 100.' : undefined}
               ajuda="Não há notas de compra nos arquivos. O crédito de IBS/CBS é estimado por este percentual do faturamento."
@@ -367,6 +386,9 @@ export default function Confirmar({ leitura, cnpjInicial, aoVoltar, aoConfirmar 
     </div>
   );
 }
+
+const textoMoeda = (v: Big | null | undefined) => (v ? formatarNumeroBR(v) : '');
+const textoPercentual = (v: Big | null) => (v ? v.toString().replace('.', ',') : '');
 
 function FalhaDeCarga({ mensagem, aoTentar }: { mensagem: string; aoTentar: () => void }) {
   return (

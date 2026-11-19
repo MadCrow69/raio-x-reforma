@@ -4,6 +4,7 @@ import { detectarEmpresa, separar, type Separacao } from '../dominio/separar';
 import type { ResultadoLeitura } from '../leitura/tipos';
 import type { ParametrosCalculo } from '../motor/tipos';
 import type { OrigemCompras, ResultadoSimulacao } from '../simulacao/simular';
+import type { RascunhoConfirmacao } from '../telas/Confirmar';
 
 /*
  * Estado do fluxo de uma análise (Enviar → Confirmar → Calculando → Resultado). Só em memória:
@@ -21,6 +22,10 @@ export interface EstadoFluxo {
   separacao?: Separacao;
   parametros?: ParametrosCalculo;
   origemCompras?: OrigemCompras;
+  /** Último preenchimento do passo 2, só em memória: restaurado ao voltar do passo 3. */
+  rascunho?: RascunhoConfirmacao;
+  /** Itens de compra sem crédito confiável (REAL): o crédito pode estar subestimado. */
+  comprasSemCredito?: number;
   auditoria?: LinhaAuditoria[];
   simulacao?: ResultadoSimulacao;
   erro?: string;
@@ -30,8 +35,8 @@ export type AcaoFluxo =
   | { tipo: 'ARQUIVOS_LIDOS'; leitura: ResultadoLeitura; arquivos: File[] }
   | { tipo: 'VOLTAR_AO_ENVIO' }
   | { tipo: 'VOLTAR_AO_CONFIRMAR' }
-  | { tipo: 'EMPRESA_CONFIRMADA'; cnpjEmpresa: string; parametros: ParametrosCalculo; origemCompras: OrigemCompras }
-  | { tipo: 'CALCULO_CONCLUIDO'; auditoria: LinhaAuditoria[]; simulacao: ResultadoSimulacao }
+  | { tipo: 'EMPRESA_CONFIRMADA'; cnpjEmpresa: string; parametros: ParametrosCalculo; origemCompras: OrigemCompras; rascunho?: RascunhoConfirmacao }
+  | { tipo: 'CALCULO_CONCLUIDO'; auditoria: LinhaAuditoria[]; simulacao: ResultadoSimulacao; comprasSemCredito?: number }
   | { tipo: 'ERRO'; mensagem: string }
   | { tipo: 'NOVA_ANALISE' };
 
@@ -57,7 +62,7 @@ export function reduzirFluxo(estado: EstadoFluxo, acao: AcaoFluxo): EstadoFluxo 
       return { passo: 'ENVIAR', arquivos: estado.arquivos, leitura: estado.leitura };
     case 'VOLTAR_AO_CONFIRMAR':
       // Cálculo que não pôde fechar: revisar o passo 2 com arquivos, leitura e empresa preservados.
-      return { ...estado, passo: 'CONFIRMAR', auditoria: undefined, simulacao: undefined, erro: undefined };
+      return { ...estado, passo: 'CONFIRMAR', auditoria: undefined, simulacao: undefined, comprasSemCredito: undefined, erro: undefined };
     case 'EMPRESA_CONFIRMADA': {
       if (!estado.leitura) return { ...estado, erro: 'Envie as notas antes de confirmar a empresa.' };
       return {
@@ -66,11 +71,12 @@ export function reduzirFluxo(estado: EstadoFluxo, acao: AcaoFluxo): EstadoFluxo 
         ...comEmpresa(estado.leitura, acao.cnpjEmpresa),
         parametros: acao.parametros,
         origemCompras: acao.origemCompras,
+        rascunho: acao.rascunho,
         erro: undefined,
       };
     }
     case 'CALCULO_CONCLUIDO':
-      return { ...estado, passo: 'RESULTADO', auditoria: acao.auditoria, simulacao: acao.simulacao, erro: undefined };
+      return { ...estado, passo: 'RESULTADO', auditoria: acao.auditoria, simulacao: acao.simulacao, comprasSemCredito: acao.comprasSemCredito, erro: undefined };
     case 'ERRO':
       return { ...estado, erro: acao.mensagem };
     case 'NOVA_ANALISE':

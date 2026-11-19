@@ -47,26 +47,43 @@ const calculado = (chave: string, numero: number, v: [string, string, string], e
 describe('somarCreditosCompras', () => {
   it('usa o grupo IBS/CBS da nota quando existe, mesmo que o motor tenha outro valor', () => {
     const c = [compra('c1', [item(1, grupo('9', '0.5', '0.5'))])];
-    expect(somarCreditosCompras(c, [calculado('c1', 1, ['80', '1', '1'])]).toString()).toBe('10');
+    expect(somarCreditosCompras(c, [calculado('c1', 1, ['80', '1', '1'])]).creditos.toString()).toBe('10');
   });
 
   it('sem grupo na nota usa o valor do motor (CALCULO_SIMULADO)', () => {
     const c = [compra('c1', [item(1)])];
-    expect(somarCreditosCompras(c, [calculado('c1', 1, ['8.8', '0.05', '0.05'])]).toString()).toBe('8.9');
+    expect(somarCreditosCompras(c, [calculado('c1', 1, ['8.8', '0.05', '0.05'])]).creditos.toString()).toBe('8.9');
   });
 
   it('sem grupo e sem cálculo válido vale zero (item não calculado ou ausente)', () => {
     const c = [compra('c1', [item(1), item(2), item(3)])];
     const calc = [calculado('c1', 1, ['5', '5', '5'], 'FALHA_TECNICA'), calculado('c1', 2, ['5', '5', '5'], 'INCONSISTENCIA_ENTRADA')];
-    expect(somarCreditosCompras(c, calc).toString()).toBe('0');
+    expect(somarCreditosCompras(c, calc).creditos.toString()).toBe('0');
   });
 
   it('soma itens e notas, sem erro de ponto flutuante', () => {
     const c = [compra('c1', [item(1, grupo('0.1', '0', '0')), item(2)]), compra('c2', [item(1, grupo('0.2', '0', '0'))])];
-    expect(somarCreditosCompras(c, [calculado('c1', 2, ['1', '1', '1'])]).toString()).toBe('3.3');
+    expect(somarCreditosCompras(c, [calculado('c1', 2, ['1', '1', '1'])]).creditos.toString()).toBe('3.3');
   });
 
   it('sem compras não há crédito', () => {
-    expect(somarCreditosCompras([], []).toString()).toBe('0');
+    expect(somarCreditosCompras([], []).creditos.toString()).toBe('0');
+  });
+
+  it('conta itens sem crédito confiável: sem grupo e sem CALCULO_SIMULADO (ausente, falha técnica, inconsistência)', () => {
+    const c = [compra('c1', [item(1), item(2), item(3), item(4, grupo('1', '0', '0')), item(5)])];
+    const calc = [
+      calculado('c1', 1, ['5', '5', '5'], 'FALHA_TECNICA'),
+      calculado('c1', 2, ['5', '5', '5'], 'INCONSISTENCIA_ENTRADA'),
+      calculado('c1', 5, ['1', '0', '0']),
+    ];
+    const r = somarCreditosCompras(c, calc);
+    expect(r.itensSemCredito).toBe(3); // 1 (falha), 2 (inconsistência), 3 (sem cálculo); 4 tem grupo, 5 foi calculado
+    expect(r.creditos.toString()).toBe('2');
+  });
+
+  it('item com grupo na nota nunca conta como sem crédito, mesmo com o motor falhando', () => {
+    const c = [compra('c1', [item(1, grupo('1', '0', '0'))])];
+    expect(somarCreditosCompras(c, [calculado('c1', 1, ['0', '0', '0'], 'FALHA_TECNICA')]).itensSemCredito).toBe(0);
   });
 });

@@ -14,7 +14,7 @@ export interface CalculandoProps {
   compras: Documento[];
   parametros: ParametrosCalculo;
   origemCompras: OrigemCompras;
-  aoConcluir: (auditoria: LinhaAuditoria[], simulacao: ResultadoSimulacao) => void;
+  aoConcluir: (auditoria: LinhaAuditoria[], simulacao: ResultadoSimulacao, comprasSemCredito: number) => void;
   /** Volta ao passo 2 (arquivos e empresa preservados) para corrigir o que impediu a comparação. */
   aoVoltar: () => void;
 }
@@ -47,7 +47,7 @@ export default function Calculando({ vendas, compras, parametros, origemCompras,
       if (!cancelado) setProgresso({ feitos, total });
     })
       .then((r) => {
-        if (!cancelado) entrada.current.aoConcluir(r.auditoria, r.simulacao);
+        if (!cancelado) entrada.current.aoConcluir(r.auditoria, r.simulacao, r.comprasSemCredito);
       })
       .catch((e: unknown) => {
         if (!cancelado) setFalha(falhaDe(e));

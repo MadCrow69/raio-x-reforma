@@ -54,9 +54,10 @@ export default function App() {
             <Confirmar
               leitura={estado.leitura}
               cnpjInicial={estado.cnpjEmpresa ?? ''}
+              rascunho={estado.rascunho}
               aoVoltar={() => despachar({ tipo: 'VOLTAR_AO_ENVIO' })}
-              aoConfirmar={({ cnpjEmpresa, parametros, origemCompras }) =>
-                despachar({ tipo: 'EMPRESA_CONFIRMADA', cnpjEmpresa, parametros, origemCompras })
+              aoConfirmar={({ cnpjEmpresa, parametros, origemCompras, rascunho }) =>
+                despachar({ tipo: 'EMPRESA_CONFIRMADA', cnpjEmpresa, parametros, origemCompras, rascunho })
               }
             />
           ) : estado.passo === 'CALCULANDO' && estado.separacao && estado.parametros && estado.origemCompras ? (
@@ -65,7 +66,9 @@ export default function App() {
               compras={estado.separacao.compras}
               parametros={estado.parametros}
               origemCompras={estado.origemCompras}
-              aoConcluir={(auditoria, simulacao) => despachar({ tipo: 'CALCULO_CONCLUIDO', auditoria, simulacao })}
+              aoConcluir={(auditoria, simulacao, comprasSemCredito) =>
+                despachar({ tipo: 'CALCULO_CONCLUIDO', auditoria, simulacao, comprasSemCredito })
+              }
               aoVoltar={() => despachar({ tipo: 'VOLTAR_AO_CONFIRMAR' })}
             />
           ) : estado.passo === 'RESULTADO' && estado.simulacao && estado.auditoria && estado.parametros ? (
@@ -75,6 +78,7 @@ export default function App() {
               auditoria={estado.auditoria}
               sextaFaixa={usaSextaFaixa(estado.parametros)}
               notasCompra={estado.separacao?.compras.length}
+              comprasSemCredito={estado.comprasSemCredito}
               aoNovaAnalise={() => despachar({ tipo: 'NOVA_ANALISE' })}
             />
           ) : null}

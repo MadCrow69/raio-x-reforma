@@ -6,7 +6,7 @@ import { limparCacheAliquotas } from '../motor/cliente';
 import atividadesJson from '../motor/__fixtures__/simples-atividades-2027.json';
 import type { ParametrosCalculo } from '../motor/tipos';
 import type { OrigemCompras } from '../simulacao/simular';
-import Confirmar from './Confirmar';
+import Confirmar, { type RascunhoConfirmacao } from './Confirmar';
 
 const EMPRESA = '11222333000181';
 const FORNECEDOR = '11444777000161';
@@ -79,12 +79,15 @@ interface Resultado {
   cnpjEmpresa: string;
   parametros: ParametrosCalculo;
   origemCompras: OrigemCompras;
+  rascunho: RascunhoConfirmacao;
 }
 
-function montar(leitura: ResultadoLeitura = leituraPadrao(), cnpjInicial = EMPRESA) {
+function montar(leitura: ResultadoLeitura = leituraPadrao(), cnpjInicial = EMPRESA, rascunho?: RascunhoConfirmacao) {
   const aoConfirmar = vi.fn<(r: Resultado) => void>();
   const aoVoltar = vi.fn();
-  render(<Confirmar leitura={leitura} cnpjInicial={cnpjInicial} aoConfirmar={aoConfirmar} aoVoltar={aoVoltar} />);
+  render(
+    <Confirmar leitura={leitura} cnpjInicial={cnpjInicial} rascunho={rascunho} aoConfirmar={aoConfirmar} aoVoltar={aoVoltar} />,
+  );
   return { aoConfirmar, aoVoltar };
 }
 
@@ -421,5 +424,29 @@ describe('Confirmar — calcular', () => {
     montar();
     expect(botaoCalcular().disabled).toBe(true);
     expect(screen.getByText('Informe o faturamento dos últimos 12 meses.')).toBeTruthy();
+  });
+});
+
+describe('Confirmar — voltar do passo 3 com o rascunho', () => {
+  it('restaura RBT12, atividade, % de compras e a classificação escolhida, com "Calcular" habilitado', async () => {
+    const leitura: ResultadoLeitura = { documentos: [doc('v1', 'NFE', EMPRESA, undefined, [itemDoc(1, 100)])], ignorados: [] };
+    const primeira = montar(leitura);
+    await screen.findByRole('region', { name: 'Classificação IBS/CBS' });
+    await escolherAtividade(/Atividade das NF-e e NFC-e/, '01');
+    digitar(campoRbt12(), '1.000.000,00');
+    digitar(screen.getByLabelText(/Compras ≈ % do faturamento/), '25');
+    fireEvent.click(within(screen.getByRole('region', { name: 'Classificação IBS/CBS' })).getByRole('radio', { name: '200003' }));
+    await waitFor(() => expect(botaoCalcular().disabled).toBe(false));
+    fireEvent.click(botaoCalcular());
+    await waitFor(() => expect(primeira.aoConfirmar).toHaveBeenCalledTimes(1));
+    const { rascunho } = primeira.aoConfirmar.mock.calls[0][0];
+    cleanup();
+
+    montar(leitura, EMPRESA, rascunho);
+    expect(campoRbt12().value).toBe('1.000.000,00');
+    expect((screen.getByLabelText(/Compras ≈ % do faturamento/) as HTMLInputElement).value).toBe('25');
+    const regiao = await screen.findByRole('region', { name: 'Classificação IBS/CBS' });
+    expect(within(regiao).getByRole('radio', { name: '200003' }).getAttribute('aria-checked')).toBe('true');
+    await waitFor(() => expect(botaoCalcular().disabled).toBe(false));
   });
 });

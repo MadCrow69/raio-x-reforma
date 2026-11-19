@@ -94,4 +94,31 @@ describe('reduzirFluxo', () => {
     expect(e.erro).toBeUndefined();
     expect(e.simulacao).toBeUndefined();
   });
+
+  it('o rascunho do passo 2 sobrevive ao ciclo CALCULANDO -> VOLTAR_AO_CONFIRMAR e some ao voltar ao envio', () => {
+    const leitura = { documentos: [doc('1', EMPRESA, OUTRA)], ignorados: [] };
+    const lido = reduzirFluxo(ESTADO_INICIAL, { tipo: 'ARQUIVOS_LIDOS', leitura, arquivos: [] });
+    const rascunho = {
+      cnpjTexto: EMPRESA,
+      rbt12: new Big(1000),
+      folha: null,
+      percentualCompras: new Big(40),
+      atividadeEscolhida: { MERCADORIAS: '01' },
+      trocas: { 'NCM:1': '200003' },
+    };
+    const calculando = reduzirFluxo(lido, {
+      tipo: 'EMPRESA_CONFIRMADA',
+      cnpjEmpresa: EMPRESA,
+      parametros: { classificacoes: {}, atividadePorTipo: {}, aliquotasSimples: {} },
+      origemCompras: { tipo: 'REAL', creditos: new Big(0) },
+      rascunho,
+    });
+    expect(reduzirFluxo(calculando, { tipo: 'VOLTAR_AO_CONFIRMAR' }).rascunho).toBe(rascunho);
+    expect(reduzirFluxo(calculando, { tipo: 'VOLTAR_AO_ENVIO' }).rascunho).toBeUndefined();
+  });
+
+  it('CALCULO_CONCLUIDO guarda quantos itens de compra ficaram sem crédito', () => {
+    const e = reduzirFluxo(ESTADO_INICIAL, { tipo: 'CALCULO_CONCLUIDO', auditoria: [], simulacao: {} as never, comprasSemCredito: 3 });
+    expect(e.comprasSemCredito).toBe(3);
+  });
 });
