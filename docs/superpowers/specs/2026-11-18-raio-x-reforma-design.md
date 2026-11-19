@@ -141,12 +141,12 @@ Se algum item falhar, a arquitetura volta para revisão antes do plano.
 - Teste de interface (Playwright) do fluxo completo com ~200 notas; medição de layout em 7 tamanhos.
 - Acentuação correta em todo texto visível.
 
-## 10. Em aberto (para o usuário)
+## 10. Decisões do usuário após a revisão (2026-11-18)
 
-- **Origem do cClassTrib/CST e data enviada ao motor** quando o XML é anterior a 2027 e não traz o grupo IBS/CBS (o motor do Simples exige `cClassTrib` e só calcula a partir de 2027-01-01).
-- **Fórmula da comparação e critério do veredito** (escopo do DAS comparado, premissa de preço, empate entre custo da empresa e crédito do cliente PJ).
-- Hospedagem da demo pública e domínio (duas JVMs Spring + Caddy).
-- NFS-e no MVP ou só NF-e/NFC-e (muitas empresas do Simples são prestadoras de serviço; NFS-e tem leiaute próprio e aumenta o escopo).
+- **cClassTrib ausente no XML (notas anteriores a 2027):** o sistema **sugere** o cClassTrib pela tabela oficial NCM↔cClassTrib (dados abertos do motor), **agrupado por NCM/NBS** (dezenas de linhas, não milhares), e a pessoa confirma. Notas anteriores a 2027 são enviadas ao motor com **data de fato gerador em 2027** e a tela avisa: "notas de 2026 simuladas como se fossem de 2027". XML que já traz o grupo IBS/CBS usa os códigos da nota (e a auditoria compara com o motor).
+- **Veredito:** compara o imposto total da empresa no mês — DAS completo (com CBS/IBS por dentro) × DAS sem a parcela de CBS/IBS + IBS/CBS por fora (débitos − créditos de compras) —, com **preço líquido igual** nos dois cenários. Se o crédito transferido ao cliente PJ apontar o lado oposto, o veredito vira **"depende dos seus clientes"** e mostra os dois números. Fórmulas exatas com os dispositivos da LC 123/2006 e LC 214/2025 ficam documentadas no código e testadas.
+- **Hospedagem:** **só local por enquanto** (`docker compose up`). Demo pública fica para depois que o usuário avaliar a capacidade do servidor. Consequência: o plano não inclui deploy nem CI de produção; o README ensina a rodar localmente.
+- **NFS-e:** **entra no MVP**, apenas o **padrão nacional**. NFS-e municipal é ignorada com o motivo explicado na lista de notas ignoradas.
 
 ## 10.1 Decisões do autor do design (podem ser corrigidas)
 
