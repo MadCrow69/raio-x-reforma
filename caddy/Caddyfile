@@ -1,0 +1,30 @@
+# Ponto de entrada único: SPA + proxy para os motores oficiais (rede interna).
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	encode gzip
+
+	# /motor/regular/api/... -> motor-regular:8080/api/... (prefixo removido)
+	handle /motor/* {
+		request_body {
+			max_size 2MiB
+		}
+
+		handle_path /motor/regular/* {
+			reverse_proxy motor-regular:8080
+		}
+		handle_path /motor/simples/* {
+			reverse_proxy motor-simples:8082
+		}
+		respond 404
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -1,0 +1,16 @@
+Raio-X da Reforma
+Copyright (c) 2026 MadCrow69 (licença MIT, ver LICENSE)
+
+Este projeto utiliza, sem modificações, os motores de cálculo oficiais da
+Receita Federal do Brasil:
+
+  - ReceitaFederal/calculadora-rtc-regime-regular
+    https://github.com/ReceitaFederal/calculadora-rtc-regime-regular
+  - ReceitaFederal/calculadora-rtc-simples-nacional
+    https://github.com/ReceitaFederal/calculadora-rtc-simples-nacional
+
+Ambos licenciados sob a licença MIT.
+Copyright (c) 2026 Receita Federal do Brasil
+
+Este projeto é independente e não possui vínculo com a Receita Federal do
+Brasil.
