@@ -64,7 +64,7 @@ export async function analisar(
   const comprasCalculadas = compras.length > 0 ? await rodada(compras, 'REGULAR_AUDITORIA') : [];
 
   const somados = origemCompras.tipo === 'REAL' ? somarCreditosCompras(compras, comprasCalculadas) : null;
-  const origem: OrigemCompras = somados ? { tipo: 'REAL', creditos: somados.creditos } : origemCompras;
+  const origem: OrigemCompras = somados ? { tipo: 'REAL', creditos: somados.creditos, meses: somados.meses } : origemCompras;
 
   const simulacao = simular({
     vendas,

@@ -55,7 +55,7 @@ describe('reduzirFluxo', () => {
       arquivos: [],
     });
     const parametros = { classificacoes: {}, atividadePorTipo: {}, aliquotasSimples: {} };
-    const origemCompras = { tipo: 'REAL' as const, creditos: new Big(0) };
+    const origemCompras = { tipo: 'REAL' as const, creditos: new Big(0), meses: [] };
     const e = reduzirFluxo(lido, { tipo: 'EMPRESA_CONFIRMADA', cnpjEmpresa: OUTRA, parametros, origemCompras });
     expect(e.passo).toBe('CALCULANDO');
     expect(e.cnpjEmpresa).toBe(OUTRA);
@@ -84,7 +84,7 @@ describe('reduzirFluxo', () => {
       tipo: 'EMPRESA_CONFIRMADA',
       cnpjEmpresa: EMPRESA,
       parametros,
-      origemCompras: { tipo: 'REAL', creditos: new Big(0) },
+      origemCompras: { tipo: 'REAL', creditos: new Big(0), meses: [] },
     });
     const e = reduzirFluxo({ ...calculando, erro: 'falhou' }, { tipo: 'VOLTAR_AO_CONFIRMAR' });
     expect(e.passo).toBe('CONFIRMAR');
@@ -110,7 +110,7 @@ describe('reduzirFluxo', () => {
       tipo: 'EMPRESA_CONFIRMADA',
       cnpjEmpresa: EMPRESA,
       parametros: { classificacoes: {}, atividadePorTipo: {}, aliquotasSimples: {} },
-      origemCompras: { tipo: 'REAL', creditos: new Big(0) },
+      origemCompras: { tipo: 'REAL', creditos: new Big(0), meses: [] },
       rascunho,
     });
     expect(reduzirFluxo(calculando, { tipo: 'VOLTAR_AO_CONFIRMAR' }).rascunho).toBe(rascunho);

@@ -205,7 +205,7 @@ export default function Confirmar({ leitura, cnpjInicial, rascunho, aoVoltar, ao
         };
       } else {
         // Os créditos reais dependem do cálculo dos motores: quem calcula (passo 3) os soma e substitui este zero.
-        origemCompras = { tipo: 'REAL', creditos: ZERO };
+        origemCompras = { tipo: 'REAL', creditos: ZERO, meses: [] };
       }
       aoConfirmar({
         cnpjEmpresa: cnpjEfetivo,

@@ -21,13 +21,13 @@ const item = (numero: number, ibscbsNota?: GrupoIbsCbsNota): ItemDocumento => ({
   ibscbsNota,
 });
 
-const compra = (chave: string, itens: ItemDocumento[], emissao = '2027-01-10T10:00:00-03:00'): Documento => ({
+const compra = (chave: string, itens: ItemDocumento[], emissao = '2027-01-10T10:00:00-03:00', crt = '3'): Documento => ({
   chave,
   numero: chave,
   tipo: 'NFE',
   tpDoc: 55,
   emissao,
-  emitente: { documento: '11444777000161', tipo: 'PJ' },
+  emitente: { documento: '11444777000161', tipo: 'PJ', crt },
   destinatario: { documento: '11222333000181', tipo: 'PJ' },
   itens,
   arquivo: `${chave}.xml`,
@@ -107,6 +107,46 @@ describe('somarCreditosCompras', () => {
     it('nota de 2027 continua usando o grupo da própria nota', () => {
       const c = [compra('c1', [item(1, grupo('88', '0.5', '0.5'))], '2027-01-02T10:00:00-03:00')];
       expect(somarCreditosCompras(c, [calculado('c1', 1, ['1', '0', '0'])]).creditos.toString()).toBe('89');
+    });
+  });
+
+  it('meses distintos da emissão das compras (data original), em ordem', () => {
+    const c = [
+      compra('c1', [item(1)], '2026-06-10T10:00:00-03:00'),
+      compra('c2', [item(1)], '2026-04-02T10:00:00-03:00'),
+      compra('c3', [item(1)], '2026-06-20T10:00:00-03:00'),
+    ];
+    expect(somarCreditosCompras(c, []).meses).toEqual(['2026-04', '2026-06']);
+  });
+
+  describe('fornecedor do Simples Nacional (LC 214, art. 47, § 9º, II)', () => {
+    it('CRT 1, 2 ou 4 sem grupo na nota: crédito 0 e conta como sem crédito, mesmo com o motor calculando', () => {
+      for (const crt of ['1', '2', '4']) {
+        const c = [compra('c1', [item(1)], '2027-01-10T10:00:00-03:00', crt)];
+        const r = somarCreditosCompras(c, [calculado('c1', 1, ['88', '0.5', '0.5'])]);
+        expect(r.creditos.toString(), crt).toBe('0');
+        expect(r.itensSemCredito, crt).toBe(1);
+      }
+    });
+    it('CRT 1 em nota de 2026 (grupo de teste ignorado) também vale 0', () => {
+      const c = [compra('c1', [item(1, grupo('0.9', '0.1', '0'))], '2026-05-10T10:00:00-03:00', '1')];
+      expect(somarCreditosCompras(c, [calculado('c1', 1, ['88', '0.5', '0.5'])]).itensSemCredito).toBe(1);
+    });
+    it('CRT 1 com grupo válido na nota usa o valor informado pelo fornecedor', () => {
+      const c = [compra('c1', [item(1, grupo('3', '1', '0'))], '2027-01-10T10:00:00-03:00', '1')];
+      expect(somarCreditosCompras(c, [calculado('c1', 1, ['88', '0.5', '0.5'])]).creditos.toString()).toBe('4');
+    });
+    it('NFS-e de prestador optante (opSimpNac 2 ou 3) sem grupo vale 0; não optante (1) usa o motor', () => {
+      const nfse = (opSimpNac: string): Documento => ({
+        ...compra('s1', [item(1)]),
+        tipo: 'NFSE',
+        tpDoc: 91,
+        emitente: { documento: '11444777000161', tipo: 'PJ', opSimpNac },
+      });
+      const calc = [calculado('s1', 1, ['88', '0.5', '0.5'])];
+      expect(somarCreditosCompras([nfse('3')], calc).itensSemCredito).toBe(1);
+      expect(somarCreditosCompras([nfse('2')], calc).itensSemCredito).toBe(1);
+      expect(somarCreditosCompras([nfse('1')], calc).creditos.toString()).toBe('89');
     });
   });
 });

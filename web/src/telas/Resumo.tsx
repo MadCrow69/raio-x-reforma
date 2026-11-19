@@ -93,6 +93,13 @@ export default function Resumo({ simulacao, sextaFaixa = false, notasCompra, com
       </section>
 
       {simulacao.notas2026Simuladas && <Alerta tipo="info">Notas de 2026 simuladas como se fossem de 2027.</Alerta>}
+      {simulacao.periodoComprasDiferente && (
+        <Alerta tipo="info">
+          {`O período das compras (${formatarMeses(simulacao.mesesCompras)}) é diferente do período das vendas (${formatarMeses(
+            simulacao.meses,
+          )}); os créditos foram convertidos em média mensal.`}
+        </Alerta>
+      )}
       {sextaFaixa && <Alerta tipo="info">{NOTA_SEXTA_FAIXA}</Alerta>}
       {itensExcluidos > 0 && (
         <AvisoComAuditoria aoVerAuditoria={aoVerAuditoria && (() => aoVerAuditoria('EXCLUIDOS'))}>

@@ -9,6 +9,9 @@ afterEach(cleanup);
 
 const SIMULACAO: ResultadoSimulacao = {
   meses: ['2027-01'],
+  mesesCompras: [],
+  periodoComprasDiferente: false,
+  creditosMes: Big(0),
   faturamentoMes: Big(1000),
   simples: { impostoMes: Big(100), creditoClientePJMes: Big(40) },
   regular: { impostoMes: Big(50), creditoClientePJMes: Big(100) },

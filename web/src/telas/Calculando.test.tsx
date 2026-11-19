@@ -20,7 +20,7 @@ const props = () => ({
   vendas: [],
   compras: [],
   parametros: PARAMETROS,
-  origemCompras: { tipo: 'REAL', creditos: Big(0) } as const,
+  origemCompras: { tipo: 'REAL', creditos: Big(0), meses: [] as string[] } as const,
   aoConcluir: vi.fn(),
   aoVoltar: vi.fn(),
 });

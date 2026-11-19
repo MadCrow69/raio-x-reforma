@@ -14,7 +14,7 @@ import type { AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
  */
 
 export type OrigemCompras =
-  | { tipo: 'REAL'; creditos: Big }
+  | { tipo: 'REAL'; creditos: Big; /** 'AAAA-MM' distintos da emissão das compras (divisor da média mensal dos créditos). */ meses: string[] }
   | { tipo: 'ESTIMADA'; percentualSobreFaturamento: Big; aliquotaNominalTotal: Big /* cbs+ibsEstadual+ibsMunicipal, em pontos */ };
 
 export interface ResultadoCenario {
@@ -27,6 +27,14 @@ export type Veredito = 'REGULAR_TENDE_MELHOR' | 'SIMPLES_TENDE_MELHOR' | 'DEPEND
 export interface ResultadoSimulacao {
   /** 'AAAA-MM' reais da emissão (não levados a 2027) das vendas com ao menos um item incluído. */
   meses: string[];
+  /** Só em compras REAL: 'AAAA-MM' da emissão das compras (divisor da média mensal dos créditos). */
+  mesesCompras: string[];
+  /** Compras REAL com meses diferentes dos das vendas: o Resumo avisa da conversão em média mensal. */
+  periodoComprasDiferente: boolean;
+  /** Créditos das compras por mês, já proporcionalizados (FORMULAS.md, item 5). */
+  creditosMes: Big;
+  /** Só em compras REAL: receita incluída ÷ receita de todos os itens de venda (fração dos créditos usada). */
+  proporcaoCreditos?: Big;
   faturamentoMes: Big;
   simples: ResultadoCenario;
   /** `impostoMes` pode ser negativo: créditos de compras maiores que os débitos (saldo credor). */
@@ -128,11 +136,20 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
   const meses = [...mesesIncluidos].sort();
   const n = meses.length;
   const faturamentoMes = porMes(receita, n);
-  // Créditos REAL vêm de todas as compras; só a fração da receita que entrou na comparação é usada.
-  const creditosMes =
-    origemCompras.tipo === 'REAL'
-      ? porMes(Big(calc(origemCompras.creditos).times(receita).div(receitaTotal)), n)
-      : Big(pontos(pontos(faturamentoMes, origemCompras.percentualSobreFaturamento), origemCompras.aliquotaNominalTotal));
+  // Créditos REAL vêm de todas as compras; só a fração da receita que entrou na comparação é usada, dividida pelos
+  // meses das COMPRAS: o total é do período das compras, que pode ser diferente do das vendas.
+  let mesesCompras: string[] = [];
+  let proporcaoCreditos: Big | undefined;
+  let creditosMes: Big;
+  if (origemCompras.tipo === 'REAL') {
+    mesesCompras = [...new Set(origemCompras.meses)].sort();
+    proporcaoCreditos = Big(calc(receita).div(receitaTotal));
+    const creditosProporcionais = Big(calc(origemCompras.creditos).times(receita).div(receitaTotal));
+    creditosMes = mesesCompras.length === 0 ? Big(0) : porMes(creditosProporcionais, mesesCompras.length);
+  } else {
+    creditosMes = Big(pontos(pontos(faturamentoMes, origemCompras.percentualSobreFaturamento), origemCompras.aliquotaNominalTotal));
+  }
+  const periodoComprasDiferente = mesesCompras.length > 0 && mesesCompras.join() !== meses.join();
 
   const simples: ResultadoCenario = { impostoMes: porMes(dasCompleto, n), creditoClientePJMes: porMes(creditoPJDentro, n) };
   const regular: ResultadoCenario = {
@@ -143,6 +160,10 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
 
   return {
     meses,
+    mesesCompras,
+    periodoComprasDiferente,
+    creditosMes,
+    proporcaoCreditos,
     faturamentoMes,
     simples,
     regular,

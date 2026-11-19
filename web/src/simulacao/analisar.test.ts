@@ -54,7 +54,7 @@ function motorFalso(valores: Partial<Record<Cenario, [string, string, string]>>,
 }
 
 const ESTIMADA: OrigemCompras = { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('8.9') };
-const REAL: OrigemCompras = { tipo: 'REAL', creditos: Big(0) };
+const REAL: OrigemCompras = { tipo: 'REAL', creditos: Big(0), meses: [] };
 
 describe('analisar', () => {
   it('sem compras: dois cenários nas vendas, nenhum cálculo de compras, origem estimada intacta', async () => {

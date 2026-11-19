@@ -53,7 +53,8 @@ export interface Documento {
   emissao: string;
   /** tpNF da NF-e/NFC-e como no XML: '0' entrada, '1' saída. Ausente na NFS-e. */
   tpNF?: string;
-  emitente: Parte & { crt?: string };
+  /** crt: CRT da NF-e/NFC-e; opSimpNac: situação no Simples do prestador da NFS-e (ver dominio/simplesNacional.ts). */
+  emitente: Parte & { crt?: string; opSimpNac?: string };
   destinatario?: Parte;
   itens: ItemDocumento[];
   arquivo: string;

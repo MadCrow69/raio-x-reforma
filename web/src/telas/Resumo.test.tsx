@@ -9,6 +9,10 @@ afterEach(cleanup);
 function simulacao(extra: Partial<ResultadoSimulacao> = {}): ResultadoSimulacao {
   return {
     meses: ['2027-03', '2027-04', '2027-05'],
+    mesesCompras: ['2027-03', '2027-04', '2027-05'],
+    periodoComprasDiferente: false,
+    creditosMes: Big(800),
+    proporcaoCreditos: Big(1),
     faturamentoMes: Big(50000),
     simples: { impostoMes: Big(4100), creditoClientePJMes: Big(310) },
     regular: { impostoMes: Big(2860), creditoClientePJMes: Big(1900) },
@@ -147,5 +151,18 @@ describe('Resumo', () => {
     expect(screen.getByText('1 item de saída sem receita (transferência/remessa) não entra no faturamento.')).toBeTruthy();
     rerender(<Resumo simulacao={simulacao()} />);
     expect(screen.queryByText(/sem receita/)).toBeNull();
+  });
+
+  it('período das compras diferente do das vendas: avisa a conversão em média mensal', () => {
+    const { rerender } = render(
+      <Resumo simulacao={simulacao({ meses: ['2026-01', '2026-12'], mesesCompras: ['2026-04', '2026-06'], periodoComprasDiferente: true })} />,
+    );
+    expect(
+      screen.getByText(
+        'O período das compras (abr–jun/2026) é diferente do período das vendas (jan–dez/2026); os créditos foram convertidos em média mensal.',
+      ),
+    ).toBeTruthy();
+    rerender(<Resumo simulacao={simulacao()} />);
+    expect(screen.queryByText(/período das compras/)).toBeNull();
   });
 });

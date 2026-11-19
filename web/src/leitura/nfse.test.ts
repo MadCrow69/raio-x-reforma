@@ -18,6 +18,7 @@ describe('lerNFSe', () => {
     expect(r.itens[0].baseCalculo.toString()).toBe('950');
     expect(r.itens[0].ibscbsNota?.vCBS.toString()).toBe('8.55');
     expect(r.destinatario).toMatchObject({ documento: '22222222000122', tipo: 'PJ', municipioIbge: '3550308' });
+    expect(r.emitente.opSimpNac).toBe('1');
   });
 
   it('NFS-e municipal (raiz diferente da nacional) é ignorada como NFSE_MUNICIPAL', () => {

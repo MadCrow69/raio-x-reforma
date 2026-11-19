@@ -54,10 +54,13 @@ const calc = (chave: string, numero: number, v: [string, string, string], estado
 const DENTRO: [string, string, string] = ['30', '10', '0'];
 const FORA: [string, string, string] = ['90', '5', '5'];
 
-const real = (creditos: string): OrigemCompras => ({ tipo: 'REAL', creditos: Big(creditos) });
+/** Compras reais; sem `meses`, `entrada` usa os mesmos meses das vendas (período das compras = das vendas). */
+const real = (creditos: string, meses?: string[]): OrigemCompras => ({ tipo: 'REAL', creditos: Big(creditos), meses: meses ?? [] });
 
 /** Uma venda por chave, item 1 de R$ 1.000,00, calculado nos dois cenários com DENTRO/FORA. */
-function entrada(vendas: Documento[], origemCompras: OrigemCompras, fora = FORA, dentro = DENTRO) {
+function entrada(vendas: Documento[], origem: OrigemCompras, fora = FORA, dentro = DENTRO) {
+  const origemCompras: OrigemCompras =
+    origem.tipo === 'REAL' && origem.meses.length === 0 ? { ...origem, meses: [...new Set(vendas.map((v) => v.emissao.slice(0, 7)))] } : origem;
   return {
     vendas,
     compras: [],
@@ -281,5 +284,32 @@ describe('simular', () => {
     expect(r.simples.impostoMes.toString()).toBe('100');
     // créditos não são proporcionalizados por item sem receita: 60 + 100 − 80 = 80
     expect(r.regular.impostoMes.toString()).toBe('80');
+  });
+
+  describe('período das compras × período das vendas', () => {
+    const doze = Array.from({ length: 12 }, (_, i) => venda(`V${i}`, { emissao: `2026-${String(i + 1).padStart(2, '0')}-10T10:00:00-03:00` }));
+
+    it('12 meses de vendas e 3 de compras: créditos ÷ 3 meses de compras, com aviso', () => {
+      // créditos 240 em 3 meses de compras = 80/mês; débitos por mês iguais aos de 1 venda: 60 + 100 − 80 = 80.
+      const r = simular(entrada(doze, real('240', ['2026-04', '2026-05', '2026-06'])));
+      expect(r.meses).toHaveLength(12);
+      expect(r.mesesCompras).toEqual(['2026-04', '2026-05', '2026-06']);
+      expect(r.creditosMes.toString()).toBe('80');
+      expect(r.regular.impostoMes.toString()).toBe('80');
+      expect(r.periodoComprasDiferente).toBe(true);
+    });
+
+    it('mesmo período: sem aviso e média igual à de antes', () => {
+      const r = simular(entrada([venda('A')], real('80')));
+      expect(r.periodoComprasDiferente).toBe(false);
+      expect(r.creditosMes.toString()).toBe('80');
+      expect(r.mesesCompras).toEqual(['2027-01']);
+    });
+
+    it('compras estimadas não têm período próprio', () => {
+      const r = simular(entrada([venda('A')], { tipo: 'ESTIMADA', percentualSobreFaturamento: Big(40), aliquotaNominalTotal: Big('26.5') }));
+      expect(r.mesesCompras).toEqual([]);
+      expect(r.periodoComprasDiferente).toBe(false);
+    });
   });
 });

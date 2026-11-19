@@ -57,7 +57,7 @@ export function lerNFSe(xml: Document, arquivo: string): Documento | DocumentoIg
       tipo: 'NFSE',
       tpDoc: 91,
       emissao,
-      emitente,
+      emitente: { ...emitente, opSimpNac: texto(filho(infDPS, 'prest', 'regTrib'), 'opSimpNac') },
       destinatario: lerParte(toma, filho(toma, 'end', 'endNac')),
       itens: [
         {
