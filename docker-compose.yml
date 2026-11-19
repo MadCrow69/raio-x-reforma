@@ -1,5 +1,5 @@
 # Motores oficiais da Receita em rede interna. Só o serviço `web` (Caddy) publica
-# porta no host: 8080 (HTTP, uso local).
+# porta no host: 8080 (HTTP, uso local), presa ao 127.0.0.1 (não fica exposta na rede).
 # Para o spike: docker compose -f docker-compose.yml -f docker-compose.spike.yml up -d --build
 services:
   web:
@@ -11,7 +11,7 @@ services:
     image: raio-x-reforma/web
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     networks: [interna]
     depends_on:
       motor-regular: { condition: service_healthy }

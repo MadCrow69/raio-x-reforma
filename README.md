@@ -29,7 +29,7 @@ Com as notas reais em mãos, dá para simular os dois cenários, em vez de usar 
 - **Seus XMLs não saem do navegador.** Eles são lidos e interpretados na própria página. Aos motores de cálculo vão só,
   por item: base de cálculo (e o valor do Imposto Seletivo, quando há), NCM ou NBS, CST e cClassTrib, quantidade e unidade
   padrão; e, por nota: o tipo de documento, a data de emissão (levada a 2027), o município (código IBGE) e a UF da
-  operação, a atividade e os percentuais do Simples. O documento vai identificado por um número sequencial (`doc-1`,
+  operação, as alíquotas nominais, a atividade e os percentuais do Simples. O documento vai identificado por um número sequencial (`doc-1`,
   `doc-2`…): o XML, a chave de acesso, CNPJs/CPFs, nomes e descrições dos itens não saem do navegador. Nada é guardado.
 - O Caddy é o único ponto de entrada: serve a interface e encaminha `/motor/regular/...` e `/motor/simples/...` para os motores,
   que ficam numa rede interna e rodam sem nenhuma alteração.
@@ -54,7 +54,8 @@ docker compose up --build
 ```
 
 Depois acesse http://localhost:8080. O primeiro build leva vários minutos, porque compila os motores oficiais com Maven; os
-seguintes usam o cache do Docker. Só o serviço `web` (Caddy) publica porta no host (HTTP, uso local). Para encerrar:
+seguintes usam o cache do Docker. Só o serviço `web` (Caddy) publica porta no host, presa ao `127.0.0.1` (HTTP, uso local,
+fora da rede). Para encerrar:
 `docker compose down`.
 
 Detalhes dos motores (commits fixados, banco, portas) em [`motores/README.md`](motores/README.md) e [`docs/spike-motores.md`](docs/spike-motores.md).
@@ -74,7 +75,7 @@ Todos os comandos rodam dentro de `web/` (`npm ci` uma vez).
 
 O teste ponta a ponta usa o navegador de verdade contra os motores reais, com um conjunto de ~200 notas sintéticas geradas
 de forma determinística por `web/e2e/gerarNotas.ts` (150 vendas, 50 compras, NCMs com redução, uma combinação NCM × cClassTrib
-inválida, duplicadas e um evento de cancelamento). Sequência de comandos:
+inválida, duplicadas e um evento que cancela uma das vendas). Sequência de comandos:
 
 ```bash
 docker compose up --build -d          # na raiz do repositório; espere os motores ficarem saudáveis
@@ -86,7 +87,8 @@ cd .. && docker compose down
 ```
 
 O teste envia o ZIP, confirma a empresa (faturamento de R$ 1.200.000,00, atividades 01 e 07), calcula nos dois motores,
-confere o veredito, o `REG-011` na Auditoria, o CSV exportado e as duas origens da Memória de cálculo. As medições de layout
+confere a nota cancelada fora da análise, o veredito, a seção "Como chegamos aqui", o `REG-011` e o achado das compras de
+2026 na Auditoria, o CSV exportado e as duas origens da Memória de cálculo. As medições de layout
 nos 7 tamanhos de tela estão em [`docs/medicao-layout.md`](docs/medicao-layout.md).
 
 ## Limitações
@@ -97,7 +99,24 @@ nos 7 tamanhos de tela estão em [`docs/medicao-layout.md`](docs/medicao-layout.
 - **6ª faixa do Simples:** o cálculo segue uma interpretação do teto de 5% do ISS (Res. CGSN 190, art. 21, III), ainda pendente de
   confirmação; a tela avisa.
 - **CBS e IBS somados:** a comparação trata os dois tributos juntos, sem separar as diferenças de cada um. Fórmulas e premissas em [`web/src/simulacao/FORMULAS.md`](web/src/simulacao/FORMULAS.md).
-- **Créditos proporcionais à receita incluída:** o crédito das compras é rateado conforme a receita efetivamente incluída no cálculo.
+- **Créditos proporcionais à receita incluída:** o crédito das compras é rateado conforme a receita efetivamente incluída no
+  cálculo e dividido pelos meses das compras (se o período das compras for diferente do das vendas, o Resumo avisa).
+- **Compras de 2026:** o grupo IBS/CBS dessas notas traz as alíquotas de teste (CBS 0,9%, IBS 0,1%); o crédito usa o valor
+  recalculado pelo motor com as alíquotas de 2027 e a Auditoria não compara os valores ("Nota anterior a 2027").
+- **Compras de fornecedor do Simples sem grupo IBS/CBS na nota não geram crédito:** a lei limita esse crédito ao que o fornecedor
+  recolheu no Simples (LC 214, art. 47, § 9º, II), valor que a nota não informa; o item conta como "sem crédito calculado" e o
+  crédito pode estar subestimado.
+- **Notas canceladas:** NF-e/NFC-e com o evento de cancelamento no mesmo envio saem da análise. A NFS-e nacional cancelada não é
+  reconhecida (não há exemplo oficial do evento nos motores); envie só as NFS-e válidas.
+- **Devoluções de venda são ignoradas, não abatidas:** a nota de devolução (finNFe = 4) fica fora da análise; o faturamento da venda
+  original continua inteiro.
+- **Saídas sem receita:** itens com CFOP de transferência (x.15x) ou de remessa e outras saídas (x.9xx, exceto x.933, serviço com
+  ISSQN) e notas de entrada emitidas pela própria empresa (tpNF = 0) não entram no faturamento; o Resumo diz quantos itens ficaram
+  de fora.
+- **Filiais contam como outra empresa:** a empresa é identificada pelo CNPJ completo; notas de outro estabelecimento com a mesma raiz
+  de CNPJ ficam fora da análise ("Outra empresa").
+- **Arquivos:** só XML e ZIP (com até um nível de ZIP dentro de ZIP); arquivo com mais de 20 MB, ou que leve o envio a passar de
+  300 MB descompactados, fica de fora com o motivo.
 - **Alíquotas de 2027 de referência:** os dados abertos de 2027 ainda não existem (HTTP 404); o cálculo usa alíquotas de
   referência, e notas de 2026 são simuladas como se fossem de 2027.
 - **Auditoria das vendas:** os valores recalculados vêm do motor do Simples (o certo para quem é do Simples); a validação de

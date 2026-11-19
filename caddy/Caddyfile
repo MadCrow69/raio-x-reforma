@@ -7,6 +7,14 @@
 :80 {
 	encode gzip
 
+	# Segurança: só recursos da própria origem (a SPA não usa script/estilo inline nem CDN; fontes e CSS são
+	# servidos de /assets; o download do CSV usa blob:), sem moldura de outro site, sem farejar tipo, sem Referer.
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+	}
+
 	# /motor/regular/api/... -> motor-regular:8080/api/... (prefixo removido)
 	handle /motor/* {
 		request_body {

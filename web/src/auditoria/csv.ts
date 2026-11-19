@@ -1,6 +1,7 @@
 import type Big from 'big.js';
 import type { LinhaAuditoria } from './auditar';
 import { ROTULO_ACHADO, ROTULO_ESTADO, ROTULO_PAPEL, ROTULO_TIPO } from './rotulos';
+import { semCalculo } from './tabela';
 
 const CABECALHO = [
   'Nota', 'Papel', 'Tipo', 'Item', 'Descrição', 'NCM/NBS', 'CST', 'cClassTrib', 'Estado', 'Achado',
@@ -21,7 +22,9 @@ export function paraCsv(linhas: LinhaAuditoria[]): string {
     [
       texto(l.numeroNota), ROTULO_PAPEL[l.papel], ROTULO_TIPO[l.tipo], String(l.item), texto(l.descricao), texto(l.ncmOuNbs),
       texto(l.cst), texto(l.cClassTrib), ROTULO_ESTADO[l.estado], ROTULO_ACHADO[l.achado],
-      l.erros.map((e) => e.code).join(' | '), dinheiro(l.vNota), dinheiro(l.vMotor), dinheiro(l.diferenca),
+      l.erros.map((e) => e.code).join(' | '), dinheiro(l.vNota),
+      // Sem cálculo do motor não há valor (como o "—" da tela): vazio, nunca 0,00.
+      dinheiro(semCalculo(l) ? undefined : l.vMotor), dinheiro(l.diferenca),
     ].map(campo).join(';'),
   );
   return '\uFEFF' + [CABECALHO.join(';'), ...rows].join('\r\n') + '\r\n';

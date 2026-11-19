@@ -173,9 +173,7 @@ export default function Enviar({ aoContinuar, inicial }: EnviarProps) {
           type="file"
           multiple
           accept=".xml,.zip"
-          className="sr-only"
-          tabIndex={-1}
-          aria-hidden
+          hidden
           onChange={aoEscolher}
         />
       </div>

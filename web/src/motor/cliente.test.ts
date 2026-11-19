@@ -68,6 +68,17 @@ describe('calcular', () => {
     expect(fetchMock.mock.calls[0][1].method).toBe('POST');
   });
 
+  it('Simples: vIBSMun sem vIBSUF não conta o IBS duas vezes (UF = vIBSSN − vIBSMun)', async () => {
+    const o = simplesNfe.objetos[0];
+    const tribCalc = { ...o.tribCalc, vIBSSN: '11.88', vIBSMun: '1.88' } as Record<string, unknown>;
+    delete tribCalc.vIBSUF;
+    fetchMock.mockResolvedValue(resposta({ ...simplesNfe, objetos: [{ ...o, tribCalc }] }));
+    const [r] = await calcular([doc()], 'SIMPLES_POR_DENTRO', parametros());
+    expect(r.vIBSUF.toString()).toBe('10');
+    expect(r.vIBSMun.toString()).toBe('1.88');
+    expect(r.vIBSUF.plus(r.vIBSMun).toString()).toBe('11.88');
+  });
+
   it('Simples: NAO_CALCULADO do motor vira NAO_CALCULADO com zeros', async () => {
     fetchMock.mockResolvedValue(resposta(simplesNaoCalc));
     const r = await calcular([doc()], 'SIMPLES_POR_DENTRO', parametros());

@@ -99,7 +99,7 @@ function normalizarEstado(estado: string): EstadoItem {
 
 /**
  * O motor do Simples só devolve a parcela de IBS total (vIBSSN), sem separar UF/município:
- * o total vai em vIBSUF e vIBSMun fica 0. Ele também não devolve memoriaCalculo; a memória é
+ * o total vai em vIBSUF e vIBSMun fica 0 (se vier vIBSMun sem vIBSUF, a UF fica com o total menos a municipal). Ele também não devolve memoriaCalculo; a memória é
  * montada a partir dos percentuais e valores da resposta.
  */
 function mapearSimples(doc: Documento, o: ObjetoSimplesJson): ItemCalculado {
@@ -107,7 +107,8 @@ function mapearSimples(doc: Documento, o: ObjetoSimplesJson): ItemCalculado {
   const erros = (o.erros ?? []).map(paraErro);
   const t = o.tribCalc;
   if (estado !== 'CALCULO_SIMULADO' || !t) return item(doc, o.nObj, estado, erros);
-  const vIBSUF = t.vIBSUF !== undefined ? dec(t.vIBSUF) : dec(t.vIBSSN);
+  // vIBSSN é o IBS total: sem a parcela da UF na resposta, ela é o total menos a municipal (nunca o total de novo).
+  const vIBSUF = t.vIBSUF !== undefined ? dec(t.vIBSUF) : dec(t.vIBSSN).minus(dec(t.vIBSMun));
   const memoria =
     `Simples Nacional, IBS/CBS por dentro: CBS ${t.pCBSSN ?? '0'}% = R$ ${t.vCBSSN ?? '0.00'}; ` +
     `IBS ${t.pIBSSN ?? '0'}% = R$ ${t.vIBSSN ?? '0.00'} sobre a base de R$ ${t.vBC ?? '0.00'}.`;

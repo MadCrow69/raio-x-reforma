@@ -27,4 +27,14 @@ describe('paraCsv', () => {
     expect(c).toContain(`;"'=HYPERLINK(""x"")";'@a;`);
     expect(c).toContain(';-5,00;');
   });
+  it('item sem cálculo do motor (não calculado / erro do motor) deixa "Valor do motor" vazio, na mesma coluna', () => {
+    const naoCalc = paraCsv([{ ...base, descricao: 'Açúcar', achado: 'NAO_CALCULADO', estado: 'NAO_CALCULADO', vMotor: Big(0), vNota: undefined, diferenca: undefined }]).split('\r\n')[1];
+    expect(naoCalc.split(';')).toHaveLength(14);
+    expect(naoCalc.endsWith(';;;')).toBe(true);
+    const erro = paraCsv([{ ...base, achado: 'ERRO_MOTOR', estado: 'INCONSISTENCIA_ENTRADA', vMotor: Big(0), diferenca: undefined }]).split('\r\n')[1];
+    expect(erro.endsWith(';1234,56;;')).toBe(true);
+    // venda que o Simples calculou e o regular recusou mantém o valor do Simples (como na tela)
+    const vendaRecusada = paraCsv([{ ...base, achado: 'ERRO_MOTOR', diferenca: undefined }]).split('\r\n')[1];
+    expect(vendaRecusada.endsWith(';1234,56;1234,50;')).toBe(true);
+  });
 });
