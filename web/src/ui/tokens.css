@@ -51,6 +51,8 @@
 
   /* Largura da coluna de leitura do fluxo */
   --largura-conteudo: 720px;
+  /* Largura das telas de lista (Auditoria e Memória): a tabela precisa de mais que a coluna de leitura */
+  --largura-lista: 1440px;
 
   /* Movimento (zerado em prefers-reduced-motion) */
   --duracao-curta: 160ms;

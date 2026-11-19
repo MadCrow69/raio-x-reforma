@@ -6,6 +6,9 @@ import { contar, formatarMeses, formatarMoeda } from '../ui/formatar';
 import { AVISO_LEGAL, NOTA_SEXTA_FAIXA } from './avisos';
 import './Resumo.css';
 
+/** O que o aviso conta: o atalho abre a Auditoria já filtrada nisso. */
+export type FocoAuditoria = 'EXCLUIDOS' | 'COMPRAS_SEM_CREDITO';
+
 export interface ResumoProps {
   simulacao: ResultadoSimulacao;
   /** Alguma atividade usada caiu na 6ª faixa do Simples: mostra a nota de interpretação. */
@@ -14,8 +17,8 @@ export interface ResumoProps {
   notasCompra?: number;
   /** Itens de compra sem crédito calculável: o crédito (e o regime regular) pode estar subestimado. */
   comprasSemCredito?: number;
-  /** Abre a aba Auditoria (atalho do aviso de itens fora da comparação). */
-  aoVerAuditoria?: () => void;
+  /** Abre a aba Auditoria com o filtro do aviso (itens fora da comparação ou compras sem crédito). */
+  aoVerAuditoria?: (foco: FocoAuditoria) => void;
 }
 
 /** Nunca categórico: só "tende a ser melhor" ou "depende" (spec §6). */
@@ -84,14 +87,14 @@ export default function Resumo({ simulacao, sextaFaixa = false, notasCompra, com
       {simulacao.notas2026Simuladas && <Alerta tipo="info">Notas de 2026 simuladas como se fossem de 2027.</Alerta>}
       {sextaFaixa && <Alerta tipo="info">{NOTA_SEXTA_FAIXA}</Alerta>}
       {itensExcluidos > 0 && (
-        <AvisoComAuditoria aoVerAuditoria={aoVerAuditoria}>
+        <AvisoComAuditoria aoVerAuditoria={aoVerAuditoria && (() => aoVerAuditoria('EXCLUIDOS'))}>
           {itensExcluidos === 1
             ? '1 item ficou fora da comparação porque não foi calculado nos dois cenários.'
             : `${itensExcluidos.toLocaleString('pt-BR')} itens ficaram fora da comparação porque não foram calculados nos dois cenários.`}
         </AvisoComAuditoria>
       )}
       {reais && comprasSemCredito > 0 && (
-        <AvisoComAuditoria aoVerAuditoria={aoVerAuditoria}>
+        <AvisoComAuditoria aoVerAuditoria={aoVerAuditoria && (() => aoVerAuditoria('COMPRAS_SEM_CREDITO'))}>
           {`${comprasSemCredito.toLocaleString('pt-BR')} ${
             comprasSemCredito === 1 ? 'item de compra sem crédito calculado' : 'itens de compra sem crédito calculado'
           }; o crédito pode estar subestimado.`}

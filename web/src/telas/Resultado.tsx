@@ -1,15 +1,16 @@
-import { Download, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { useId, useState } from 'react';
 import type { LinhaAuditoria } from '../auditoria/auditar';
-import { ROTULO_ACHADO } from '../auditoria/rotulos';
+import { ACHADOS_SEM_CALCULO, ESTADO_AUDITORIA_INICIAL, SEM_FILTROS, type EstadoAuditoria, type FocoMemoria } from '../auditoria/tabela';
 import type { ResultadoSimulacao } from '../simulacao/simular';
 import Botao from '../ui/componentes/Botao';
 import { idAba, idPainel } from '../ui/componentes/idsAbas';
-import ListaAgrupada, { ItemLista } from '../ui/componentes/ListaAgrupada';
 import Segmentado from '../ui/componentes/Segmentado';
-import { contar, formatarCnpj } from '../ui/formatar';
+import { formatarCnpj } from '../ui/formatar';
 import './Resultado.css';
-import Resumo from './Resumo';
+import Auditoria from './Auditoria';
+import Memoria from './Memoria';
+import Resumo, { type FocoAuditoria } from './Resumo';
 
 export interface ResultadoProps {
   cnpjEmpresa?: string;
@@ -26,18 +27,31 @@ export interface ResultadoProps {
 
 type Aba = 'RESUMO' | 'AUDITORIA' | 'MEMORIA';
 
-const ORDEM_ACHADOS = Object.keys(ROTULO_ACHADO) as (keyof typeof ROTULO_ACHADO)[];
-
-/** Passo 3: resultado em três abas. Auditoria e Memória são listas mínimas aqui; a tabela completa vem na tarefa seguinte. */
+/** Passo 3: resultado em três abas (Resumo, Auditoria em tabela e Memória de cálculo). */
 export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaixa, notasCompra, comprasSemCredito, aoNovaAnalise }: ResultadoProps) {
   const idBase = useId();
   const [aba, setAba] = useState<Aba>('RESUMO');
+  // Filtros, busca e ordem da Auditoria sobrevivem à troca de aba; foco = item aberto a partir de uma linha.
+  const [estadoAuditoria, setEstadoAuditoria] = useState<EstadoAuditoria>(ESTADO_AUDITORIA_INICIAL);
+  const [foco, setFoco] = useState<FocoMemoria | null>(null);
   const comAchado = auditoria.filter((l) => l.achado !== 'OK');
-  const porAchado = ORDEM_ACHADOS.map((a) => ({ achado: a, n: auditoria.filter((l) => l.achado === a).length })).filter((x) => x.n > 0);
-  const comMemoria = auditoria.filter((l) => l.memoria !== '').length;
+
+  /** Atalhos do Resumo: abrem a Auditoria já filtrada no que o aviso conta. */
+  function verAuditoria(alvo: FocoAuditoria) {
+    setEstadoAuditoria({
+      ...ESTADO_AUDITORIA_INICIAL,
+      filtros: { ...SEM_FILTROS, achado: ACHADOS_SEM_CALCULO, papel: alvo === 'COMPRAS_SEM_CREDITO' ? ['COMPRA'] : [] },
+    });
+    setAba('AUDITORIA');
+  }
+
+  function abrirMemoria(l: LinhaAuditoria) {
+    setFoco({ chave: l.chave, item: l.item });
+    setAba('MEMORIA');
+  }
 
   return (
-    <div className="resultado">
+    <div className={aba === 'RESUMO' ? 'resultado' : 'resultado resultado--lista'}>
       <header className="resultado__cabecalho">
         <div className="resultado__titulos">
           <h1 className="resultado__titulo">Resultado</h1>
@@ -53,7 +67,10 @@ export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaix
         idBase={idBase}
         rotulo="Seções do resultado"
         valor={aba}
-        aoMudar={setAba}
+        aoMudar={(a) => {
+          setAba(a);
+          setFoco(null);
+        }}
         opcoes={[
           { valor: 'RESUMO', rotulo: 'Resumo' },
           { valor: 'AUDITORIA', rotulo: 'Auditoria', contador: comAchado.length },
@@ -68,31 +85,13 @@ export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaix
             sextaFaixa={sextaFaixa}
             notasCompra={notasCompra}
             comprasSemCredito={comprasSemCredito}
-            aoVerAuditoria={() => setAba('AUDITORIA')}
+            aoVerAuditoria={verAuditoria}
           />
         )}
         {aba === 'AUDITORIA' && (
-          <>
-            <ListaAgrupada
-              titulo="Auditoria"
-              rodape={`${contar(auditoria.length, 'item analisado', 'itens analisados')} · ${comAchado.length.toLocaleString('pt-BR')} com achado`}
-            >
-              {porAchado.map(({ achado, n }) => (
-                <ItemLista key={achado} titulo={ROTULO_ACHADO[achado]} valor={n.toLocaleString('pt-BR')} />
-              ))}
-            </ListaAgrupada>
-            <div className="resultado__acoes">
-              <Botao variante="secundario" icone={Download} disabled>
-                Exportar CSV
-              </Botao>
-            </div>
-          </>
+          <Auditoria linhas={auditoria} estado={estadoAuditoria} aoMudarEstado={setEstadoAuditoria} aoAbrirMemoria={abrirMemoria} />
         )}
-        {aba === 'MEMORIA' && (
-          <ListaAgrupada titulo="Memória de cálculo">
-            <ItemLista titulo={`${contar(comMemoria, 'item com memória de cálculo', 'itens com memória de cálculo')} do motor`} />
-          </ListaAgrupada>
-        )}
+        {aba === 'MEMORIA' && <Memoria linhas={auditoria} foco={foco} aoLimparFoco={() => setFoco(null)} />}
       </div>
     </div>
   );

@@ -46,3 +46,14 @@
   display: flex;
   justify-content: flex-end;
 }
+
+/* Telas de lista: ocupam a altura que sobra (a rolagem fica no miolo da lista, ver App.css). */
+.resultado--lista {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.resultado--lista .resultado__painel {
+  flex: 1 1 auto;
+  min-height: 0;
+}

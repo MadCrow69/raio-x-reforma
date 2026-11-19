@@ -1,0 +1,188 @@
+.memoria {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.memoria__cabecalho {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--esp-1) var(--esp-3);
+}
+
+.memoria__secao {
+  font: var(--texto-titulo-3);
+}
+
+.memoria__resumo {
+  font: var(--texto-secundario);
+  color: var(--cor-texto-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.memoria__busca {
+  flex: none;
+  display: flex;
+  min-width: 0;
+  min-height: var(--altura-controle);
+  padding: 0 var(--esp-4);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-preenchimento);
+}
+
+.memoria__busca:focus-within {
+  box-shadow: 0 0 0 3px var(--cor-destaque-suave);
+}
+
+.memoria__busca input {
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: var(--texto-secundario);
+  color: var(--cor-texto);
+}
+
+.memoria__busca input:focus-visible {
+  outline: none;
+}
+
+.memoria__foco {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2) var(--esp-4);
+  font: var(--texto-secundario);
+  color: var(--cor-texto-2);
+}
+
+.memoria__lista {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+.memoria__item {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  min-width: 0;
+  padding: var(--esp-4);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-cartao);
+}
+
+.memoria__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-1) var(--esp-3);
+}
+
+.memoria__titulo {
+  font: var(--texto-destaque);
+}
+
+.memoria__descricao {
+  font: var(--texto-secundario);
+  overflow-wrap: anywhere;
+}
+
+.memoria__meta {
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+}
+
+.memoria__origem {
+  align-self: flex-start;
+  margin-top: var(--esp-2);
+  padding: 0 var(--esp-2);
+  border-radius: var(--raio-pilula);
+  font: var(--texto-nota);
+  font-weight: 600;
+}
+
+.memoria__origem--motor {
+  background: var(--cor-destaque-suave);
+  color: var(--cor-destaque-texto);
+}
+
+/* Composta pelo app: tom de alerta, para nunca passar por saída do motor. */
+.memoria__origem--composta {
+  background: var(--cor-alerta-suave);
+  color: var(--cor-alerta-texto);
+}
+
+.memoria__texto {
+  margin: var(--esp-1) 0 0;
+  padding: var(--esp-3);
+  border-radius: var(--raio-1);
+  background: var(--cor-preenchimento);
+  font: var(--texto-nota);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.memoria__sem {
+  margin-top: var(--esp-2);
+  font: var(--texto-secundario);
+  color: var(--cor-texto-2);
+}
+
+.memoria__erros {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  margin-top: var(--esp-2);
+  font: var(--texto-nota);
+  overflow-wrap: anywhere;
+}
+
+.memoria__vazio {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  padding: var(--esp-6) var(--esp-4);
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  text-align: center;
+}
+
+.memoria__vazio-titulo {
+  font: var(--texto-destaque);
+}
+
+.memoria__vazio-texto {
+  font: var(--texto-secundario);
+  color: var(--cor-texto-2);
+}
+
+/* Computador: só a lista rola; a casca e a paginação ficam fixas. */
+@media (min-width: 1024px) {
+  .memoria__lista {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .memoria__busca {
+    min-height: var(--alvo-toque);
+  }
+}

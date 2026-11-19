@@ -1,0 +1,41 @@
+.selo-achado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-width: 0;
+  white-space: nowrap;
+  color: var(--selo-texto, var(--cor-texto));
+}
+
+.selo-achado__ponto {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--raio-pilula);
+  background: var(--selo-ponto, var(--cor-texto-2));
+}
+
+.selo-achado--ok {
+  --selo-ponto: var(--cor-sucesso);
+  --selo-texto: var(--cor-sucesso-texto);
+}
+
+.selo-achado--valor_divergente {
+  --selo-ponto: var(--cor-alerta);
+  --selo-texto: var(--cor-alerta-texto);
+}
+
+.selo-achado--erro_motor {
+  --selo-ponto: var(--cor-erro);
+  --selo-texto: var(--cor-erro-texto);
+}
+
+.selo-achado--sem_grupo_na_nota {
+  --selo-ponto: var(--cor-destaque);
+  --selo-texto: var(--cor-destaque-texto);
+}
+
+.selo-achado--nao_calculado {
+  --selo-ponto: var(--cor-texto-2);
+  --selo-texto: var(--cor-texto-2);
+}

@@ -1,0 +1,235 @@
+/*
+ * Tabela de dados: no computador, só o corpo rola (cabeçalho fixo); a coluna elástica corta com
+ * reticências. A troca para cartões é pela largura do CONTÊINER (container query), não da janela.
+ */
+.tabela {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  container-type: inline-size;
+  container-name: tabela;
+}
+
+.tabela__rolagem {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-cartao);
+}
+
+.tabela__tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font: var(--texto-nota);
+}
+
+.tabela__tabela th,
+.tabela__tabela td {
+  height: 42px;
+  padding: 0 var(--esp-2);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--cor-separador);
+}
+
+.tabela__tabela thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0;
+  background: var(--cor-superficie);
+  font-weight: 600;
+  color: var(--cor-texto-2);
+}
+
+.tabela__tabela tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabela__num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela__tabela td.tabela__num {
+  font-weight: 600;
+}
+
+.tabela__elastica {
+  min-width: 120px;
+  width: 100%;
+  max-width: 0;
+}
+
+.tabela__tabela td.tabela__elastica {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabela__tabela td.tabela__trunca {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabela__ordenar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-1);
+  width: 100%;
+  height: 100%;
+  min-height: 42px;
+  padding: 0 var(--esp-2);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tabela__num .tabela__ordenar {
+  justify-content: flex-end;
+}
+
+.tabela__ordenar:hover {
+  color: var(--cor-texto);
+}
+
+.tabela__seta {
+  flex: none;
+  opacity: 0.5;
+}
+
+.tabela__seta--ativa {
+  opacity: 1;
+  color: var(--cor-destaque-texto);
+}
+
+.tabela__linha--clicavel {
+  cursor: pointer;
+}
+
+.tabela__linha--clicavel:hover td {
+  background: var(--cor-destaque-suave);
+}
+
+.tabela__abrir {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cor-destaque-texto);
+  font: inherit;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+/* Cartões e seletor de ordem: só em contêiner estreito. */
+.tabela__cartoes,
+.tabela__ordenar-cartoes {
+  display: none;
+}
+
+.tabela__cartoes {
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.tabela__cartao {
+  min-width: 0;
+}
+
+.tabela__cartao-botao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--alvo-toque);
+  padding: var(--esp-3);
+  border: 0;
+  border-radius: var(--raio-2);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-cartao);
+  text-align: left;
+  font: var(--texto-secundario);
+  color: var(--cor-texto);
+  cursor: pointer;
+}
+
+.tabela__ordenar-cartoes {
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.tabela__ordenar-rotulo {
+  font: var(--texto-nota);
+  color: var(--cor-texto-2);
+}
+
+.tabela__ordenar-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--alvo-toque);
+  padding: 0 var(--esp-2);
+  border: 1px solid var(--cor-separador);
+  border-radius: var(--raio-1);
+  background: var(--cor-superficie);
+  font: var(--texto-secundario);
+}
+
+.tabela__ordenar-sentido {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  border: 0;
+  border-radius: var(--raio-1);
+  background: var(--cor-preenchimento);
+  color: var(--cor-destaque-texto);
+  cursor: pointer;
+}
+
+.tabela__ordenar-sentido:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@container tabela (max-width: 639px) {
+  .tabela__rolagem {
+    display: none;
+  }
+
+  .tabela__cartoes {
+    display: flex;
+  }
+
+  .tabela__ordenar-cartoes {
+    display: flex;
+  }
+}
+
+/* Tela de toque: a tabela segue a densidade média, mas o alvo de toque do cabeçalho e dos botões é 44 px. */
+@media (max-width: 1023px) {
+  .tabela__tabela th,
+  .tabela__tabela td {
+    height: var(--alvo-toque);
+  }
+
+  .tabela__ordenar,
+  .tabela__abrir {
+    min-height: var(--alvo-toque);
+    min-width: var(--alvo-toque);
+  }
+}

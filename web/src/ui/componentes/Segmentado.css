@@ -1,7 +1,7 @@
 .segmentado {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: var(--esp-0);
+  gap: var(--esp-1); /* 4 px entre opções (o medidor exige ≥ 4 px entre vizinhos) */
   max-width: 100%;
   padding: var(--esp-0);
   border-radius: var(--raio-1);

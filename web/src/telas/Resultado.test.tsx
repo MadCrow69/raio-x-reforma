@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import Big from 'big.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LinhaAuditoria } from '../auditoria/auditar';
@@ -65,25 +65,69 @@ describe('Resultado', () => {
     expect(p.aoNovaAnalise).toHaveBeenCalledTimes(1);
   });
 
-  it('aba Auditoria mostra a contagem real e "Exportar CSV" desabilitado; troca de painel', () => {
+  it('aba Auditoria mostra a tabela com a contagem real e troca de painel', () => {
     render(<Resultado {...props()} />);
     fireEvent.click(screen.getByRole('tab', { name: /Auditoria/ }));
     const painel = screen.getByRole('tabpanel');
     expect(painel.textContent).toContain('3 itens analisados');
     expect(painel.textContent).toContain('2 com achado');
-    expect((screen.getByRole('button', { name: 'Exportar CSV' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(painel).getAllByRole('row')).toHaveLength(4);
+    expect(screen.getByRole('button', { name: 'Exportar CSV' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'O regime regular tende a ser melhor' })).toBeNull();
   });
 
-  it('aba Memória de cálculo mostra quantos itens têm memória do motor', () => {
+  it('aba Memória de cálculo lista os itens com memória', () => {
     render(<Resultado {...props()} />);
     fireEvent.click(screen.getByRole('tab', { name: 'Memória de cálculo' }));
-    expect(screen.getByRole('tabpanel').textContent).toContain('3 itens com memória de cálculo');
+    expect(screen.getByRole('tabpanel').textContent).toContain('3 itens com memória');
+    expect(screen.getAllByRole('article')).toHaveLength(3);
   });
 
-  it('o atalho do Resumo para itens excluídos abre a Auditoria', () => {
+  it('clicar numa linha da Auditoria abre a Memória só daquele item; "Ver todos os itens" volta à lista', () => {
+    render(<Resultado {...props()} />);
+    fireEvent.click(screen.getByRole('tab', { name: /Auditoria/ }));
+    fireEvent.click(within(screen.getByRole('table')).getAllByRole('row')[2]);
+    expect(screen.getByRole('tab', { name: 'Memória de cálculo' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Ver todos os itens' }));
+    expect(screen.getAllByRole('article')).toHaveLength(3);
+  });
+
+  it('busca e filtros da Auditoria sobrevivem à troca de aba', () => {
+    render(<Resultado {...props()} />);
+    fireEvent.click(screen.getByRole('tab', { name: /Auditoria/ }));
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Item 2' } });
+    fireEvent.click(screen.getByRole('tab', { name: 'Resumo' }));
+    fireEvent.click(screen.getByRole('tab', { name: /Auditoria/ }));
+    expect((screen.getByRole('searchbox') as HTMLInputElement).value).toBe('Item 2');
+  });
+
+  it('o atalho de itens excluídos abre a Auditoria filtrada em não calculado / erro do motor', () => {
     render(<Resultado {...props()} />);
     fireEvent.click(screen.getByRole('button', { name: 'Ver na Auditoria' }));
     expect(screen.getByRole('tab', { name: /Auditoria/ }).getAttribute('aria-selected')).toBe('true');
+    const linhas = within(screen.getByRole('table')).getAllByRole('row').slice(1);
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0].textContent).toContain('Não calculado');
+    expect(screen.getByRole('button', { name: 'Remover filtro Achado: Não calculado' })).toBeTruthy();
+  });
+
+  it('o atalho de compras sem crédito abre a Auditoria só com compras sem cálculo', () => {
+    const p = props();
+    const compra = { ...linha(4, 'NAO_CALCULADO'), papel: 'COMPRA' as const };
+    const venda = { ...linha(5, 'ERRO_MOTOR') };
+    render(
+      <Resultado
+        {...p}
+        simulacao={{ ...SIMULACAO, itensExcluidos: 0, origemCompras: 'REAL' }}
+        comprasSemCredito={1}
+        auditoria={[...p.auditoria, compra, venda]}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Ver na Auditoria' }));
+    const linhas = within(screen.getByRole('table')).getAllByRole('row').slice(1);
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0].textContent).toContain('Compra');
+    expect(screen.getByRole('button', { name: 'Remover filtro Papel: Compra' })).toBeTruthy();
   });
 });

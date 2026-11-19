@@ -33,3 +33,9 @@ export const ROTULO_MOTIVO_IGNORADO: Record<MotivoIgnorado, string> = {
   DUPLICADO: 'Nota repetida',
   OUTRA_EMPRESA: 'Outra empresa',
 };
+
+/** De onde vem o texto da memória de cálculo: nunca deixar a composta pelo app passar por saída do motor. */
+export const ROTULO_ORIGEM_MEMORIA = {
+  MOTOR: 'Memória do motor oficial',
+  COMPOSTA: 'Composta pelo Raio-X a partir da resposta do motor',
+} as const;

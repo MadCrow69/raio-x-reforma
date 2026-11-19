@@ -105,3 +105,41 @@
     padding: var(--esp-4);
   }
 }
+
+/*
+ * Telas de lista (Auditoria e Memória, marcadas por .resultado--lista): coluna larga e, no computador,
+ * a página não rola — a casca ocupa a altura da janela (corrente height:100% desde html, sem vh) e só o
+ * miolo da lista rola. Abaixo de 1024 px o documento volta a ser o único dono da rolagem.
+ */
+.app:has(.resultado--lista) .app__topo,
+.app:has(.resultado--lista) .app__conteudo,
+.app:has(.resultado--lista) .app__rodape {
+  width: min(var(--largura-lista), 100%);
+}
+
+@media (min-width: 1024px) {
+  #root:has(.resultado--lista) {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .app:has(.resultado--lista) {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .app:has(.resultado--lista) .app__conteudo {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--esp-4);
+    padding-bottom: var(--esp-4);
+  }
+
+  .app:has(.resultado--lista) .app__rodape {
+    flex: none;
+    padding-top: var(--esp-3);
+    padding-bottom: var(--esp-3);
+  }
+}
