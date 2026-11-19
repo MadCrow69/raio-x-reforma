@@ -1,0 +1,6 @@
+# SOMENTE para o spike de verificação: publica os motores em loopback.
+services:
+  motor-regular:
+    ports: ["127.0.0.1:18080:8080"]
+  motor-simples:
+    ports: ["127.0.0.1:18082:8082"]

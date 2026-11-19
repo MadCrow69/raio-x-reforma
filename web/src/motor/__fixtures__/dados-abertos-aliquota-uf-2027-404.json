@@ -1,0 +1,1 @@
+{"type":"http://localhost/errors/aliquota-nao-encontrada","title":"Alíquota não encontrada","status":404,"detail":"Alíquota de referencia ou padrão não encontrada para o tributo com id 3, UF 43, município null e data 2027-01-01","instance":"/api/calculadora/dados-abertos/aliquota-uf","timestamp":"2026-11-19T01:55:12.514634221Z"}

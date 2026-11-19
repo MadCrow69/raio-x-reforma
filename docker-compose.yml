@@ -1,0 +1,46 @@
+# Motores oficiais da Receita em rede interna. Nenhuma porta é publicada aqui
+# (a Task 2 adiciona o Caddy como único ponto de entrada).
+# Para o spike: docker compose -f docker-compose.yml -f docker-compose.spike.yml up -d --build
+services:
+  base:
+    build:
+      context: .
+      dockerfile: motores/regime-regular.Dockerfile
+      target: base
+    image: raio-x-reforma/base
+    deploy: { replicas: 0 }   # só constrói a imagem; nunca sobe
+
+  motor-regular:
+    build:
+      context: .
+      dockerfile: motores/regime-regular.Dockerfile
+      target: runtime
+    image: raio-x-reforma/motor-regular
+    restart: unless-stopped
+    networks: [interna]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /api/swagger-ui/index.html HTTP/1.0\r\n\r\n\" >&3 && head -n1 <&3 | grep -q 200'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  motor-simples:
+    build:
+      context: .
+      dockerfile: motores/simples-nacional.Dockerfile
+      target: runtime
+      additional_contexts:
+        base: "service:base"
+    image: raio-x-reforma/motor-simples
+    restart: unless-stopped
+    networks: [interna]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8082 && printf \"GET /api/swagger-ui/index.html HTTP/1.0\r\n\r\n\" >&3 && head -n1 <&3 | grep -q 200'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+networks:
+  interna: {}
