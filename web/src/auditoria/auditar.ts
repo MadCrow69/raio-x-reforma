@@ -1,4 +1,5 @@
 import Big from 'big.js';
+import { identificarGrupo, type Classificacoes } from '../classificacao/sugestoes';
 import type { Documento, TipoDocumento } from '../leitura/tipos';
 import type { EstadoItem, ErroMotor, ItemCalculado } from '../motor/tipos';
 import type { Achado } from './rotulos';
@@ -28,12 +29,13 @@ export const TOLERANCIA = Big('0.01'); // por tributo, em R$
 
 const chaveItem = (chave: string, numero: number) => `${chave}\u0000${numero}`;
 
-function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<string, ItemCalculado>): LinhaAuditoria[] {
+function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<string, ItemCalculado>, classificacoes: Classificacoes): LinhaAuditoria[] {
   const linhas: LinhaAuditoria[] = [];
   for (const d of docs) {
     for (const it of d.itens) {
       const c = porItem.get(chaveItem(d.chave, it.numero));
       const g = it.ibscbsNota;
+      const confirmada = classificacoes[identificarGrupo(it).chave];
       const vMotor = c ? c.vCBS.plus(c.vIBSUF).plus(c.vIBSMun) : Big(0);
       const vNota = g ? g.vCBS.plus(g.vIBSUF).plus(g.vIBSMun) : undefined;
       let achado: Achado;
@@ -57,8 +59,8 @@ function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<str
         item: it.numero,
         descricao: it.descricao,
         ncmOuNbs: it.ncm ?? it.nbs ?? '',
-        cst: g?.cst ?? '',
-        cClassTrib: g?.cClassTrib ?? '',
+        cst: confirmada?.cst ?? g?.cst ?? '',
+        cClassTrib: confirmada?.cClassTrib ?? g?.cClassTrib ?? '',
         estado: c?.estado ?? 'NAO_CALCULADO',
         achado,
         erros: c?.erros ?? [],
@@ -72,7 +74,12 @@ function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<str
   return linhas;
 }
 
-export function auditar(vendas: Documento[], compras: Documento[], calculados: ItemCalculado[]): LinhaAuditoria[] {
+export function auditar(
+  vendas: Documento[],
+  compras: Documento[],
+  calculados: ItemCalculado[],
+  classificacoes: Classificacoes = {},
+): LinhaAuditoria[] {
   const porItem = new Map(calculados.map((c) => [chaveItem(c.chave, c.numero), c]));
-  return [...linhasDe(vendas, 'VENDA', porItem), ...linhasDe(compras, 'COMPRA', porItem)];
+  return [...linhasDe(vendas, 'VENDA', porItem, classificacoes), ...linhasDe(compras, 'COMPRA', porItem, classificacoes)];
 }

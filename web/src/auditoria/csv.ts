@@ -9,6 +9,9 @@ const CABECALHO = [
 
 const dinheiro = (v?: Big) => (v ? v.toFixed(2).replace('.', ',') : '');
 
+/** Neutraliza injeção de fórmula (Excel) em texto vindo de XML de terceiros. */
+const texto = (s: string) => (/^[=+\-@\t\r]/.test(s) ? `'${s}` : s);
+
 function campo(s: string): string {
   return /[;"\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
@@ -16,8 +19,8 @@ function campo(s: string): string {
 export function paraCsv(linhas: LinhaAuditoria[]): string {
   const rows = linhas.map((l) =>
     [
-      l.numeroNota, ROTULO_PAPEL[l.papel], ROTULO_TIPO[l.tipo], String(l.item), l.descricao, l.ncmOuNbs,
-      l.cst, l.cClassTrib, ROTULO_ESTADO[l.estado], ROTULO_ACHADO[l.achado],
+      texto(l.numeroNota), ROTULO_PAPEL[l.papel], ROTULO_TIPO[l.tipo], String(l.item), texto(l.descricao), texto(l.ncmOuNbs),
+      texto(l.cst), texto(l.cClassTrib), ROTULO_ESTADO[l.estado], ROTULO_ACHADO[l.achado],
       l.erros.map((e) => e.code).join(' | '), dinheiro(l.vNota), dinheiro(l.vMotor), dinheiro(l.diferenca),
     ].map(campo).join(';'),
   );

@@ -2,6 +2,7 @@ import Big from 'big.js';
 import { describe, expect, it } from 'vitest';
 import type { Documento, ItemDocumento } from '../leitura/tipos';
 import type { ItemCalculado } from '../motor/tipos';
+import { identificarGrupo } from '../classificacao/sugestoes';
 import { auditar } from './auditar';
 
 function item(numero: number, nota?: [string, string, string]): ItemDocumento {
@@ -77,5 +78,16 @@ describe('auditar', () => {
     expect(ls).toHaveLength(2);
     expect(ls[1].achado).toBe('NAO_CALCULADO');
     expect(ls[1].vMotor.toString()).toBe('0');
+  });
+  it('CST/cClassTrib: classificação confirmada prevalece sobre a da nota', () => {
+    const op = { cst: '200', cClassTrib: '200003', descricao: '', reducaoCbs: Big(0), reducaoIbs: Big(0) };
+    const semGrupo = doc([item(1)]);
+    const chave1 = identificarGrupo(semGrupo.itens[0]).chave;
+    const [a] = auditar([semGrupo], [], [calc(1, ['0', '0', '0'])], { [chave1]: op });
+    expect([a.cst, a.cClassTrib]).toEqual(['200', '200003']);
+    const comGrupo = doc([item(1, ['0.9', '0.1', '0'])]);
+    const chave2 = identificarGrupo(comGrupo.itens[0]).chave;
+    const [b] = auditar([comGrupo], [], [calc(1, ['0.9', '0.1', '0'])], { [chave2]: op });
+    expect([b.cst, b.cClassTrib]).toEqual(['200', '200003']);
   });
 });

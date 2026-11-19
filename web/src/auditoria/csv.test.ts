@@ -22,4 +22,9 @@ describe('paraCsv', () => {
     expect(linhas[2]).toContain(';Compra;NFS-e;');
     expect(linhas[2].endsWith(';;1234,50;')).toBe(true);
   });
+  it('neutraliza injeção de fórmula só em texto', () => {
+    const c = paraCsv([{ ...base, descricao: '=HYPERLINK("x")', ncmOuNbs: '@a', vNota: Big('-5') }]).split('\r\n')[1];
+    expect(c).toContain(`;"'=HYPERLINK(""x"")";'@a;`);
+    expect(c).toContain(';-5,00;');
+  });
 });
