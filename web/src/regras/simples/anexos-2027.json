@@ -1,0 +1,102 @@
+{
+  "I": {
+    "fonte": "LC 123/2006, Anexo I, na redação do Anexo XVIII da LC 214/2025 (art. 519; efeitos a partir de 1º/1/2027 pelo art. 544, III), tabela 'Para os anos-calendário 2027 e 2028' — https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm#anexo18 ; conferida com o Anexo I da Resolução CGSN nº 140/2018 na redação da Resolução CGSN nº 190/2026 (DOU 10/8/2026) — https://www.in.gov.br/web/dou/-/resolucao-cgsn-n-190-de-4-de-agosto-de-2026-724454118",
+    "vigencia": { "inicio": "2027-01-01", "fim": "2028-12-31" },
+    "faixas": [
+      { "ate": "180000.00", "aliquotaNominal": "4.00", "parcelaDeduzir": "0.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "15.33", "CPP": "41.50", "ICMS": "34.00", "IBS": "0.17" } },
+      { "ate": "360000.00", "aliquotaNominal": "7.30", "parcelaDeduzir": "5940.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "15.33", "CPP": "41.50", "ICMS": "34.00", "IBS": "0.17" } },
+      { "ate": "720000.00", "aliquotaNominal": "9.50", "parcelaDeduzir": "13860.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "15.33", "CPP": "42.00", "ICMS": "33.50", "IBS": "0.17" } },
+      { "ate": "1800000.00", "aliquotaNominal": "10.70", "parcelaDeduzir": "22500.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "15.33", "CPP": "42.00", "ICMS": "33.50", "IBS": "0.17" } },
+      { "ate": "3600000.00", "aliquotaNominal": "14.30", "parcelaDeduzir": "87300.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "15.33", "CPP": "42.00", "ICMS": "33.50", "IBS": "0.17" } },
+      { "ate": "4800000.00", "aliquotaNominal": "18.90", "parcelaDeduzir": "378000.00",
+        "reparticao": { "IRPJ": "13.58", "CSLL": "10.06", "CBS": "34.02", "CPP": "42.34" } }
+    ]
+  },
+  "II": {
+    "fonte": "LC 123/2006, Anexo II, na redação do Anexo XIX da LC 214/2025 (art. 519; efeitos a partir de 1º/1/2027 pelo art. 544, III), tabela 'Para os anos-calendário 2027 e 2028' — https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm#anexo19 ; conferida com o Anexo II da Resolução CGSN nº 140/2018 na redação da Resolução CGSN nº 190/2026 — https://www.in.gov.br/web/dou/-/resolucao-cgsn-n-190-de-4-de-agosto-de-2026-724454118",
+    "vigencia": { "inicio": "2027-01-01", "fim": "2028-12-31" },
+    "faixas": [
+      { "ate": "180000.00", "aliquotaNominal": "4.50", "parcelaDeduzir": "0.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "13.85", "CPP": "37.50", "IPI": "7.50", "ICMS": "32.00", "IBS": "0.15" } },
+      { "ate": "360000.00", "aliquotaNominal": "7.80", "parcelaDeduzir": "5940.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "13.85", "CPP": "37.50", "IPI": "7.50", "ICMS": "32.00", "IBS": "0.15" } },
+      { "ate": "720000.00", "aliquotaNominal": "10.00", "parcelaDeduzir": "13860.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "13.85", "CPP": "37.50", "IPI": "7.50", "ICMS": "32.00", "IBS": "0.15" } },
+      { "ate": "1800000.00", "aliquotaNominal": "11.20", "parcelaDeduzir": "22500.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "13.85", "CPP": "37.50", "IPI": "7.50", "ICMS": "32.00", "IBS": "0.15" } },
+      { "ate": "3600000.00", "aliquotaNominal": "14.70", "parcelaDeduzir": "85500.00",
+        "reparticao": { "IRPJ": "5.50", "CSLL": "3.50", "CBS": "13.85", "CPP": "37.50", "IPI": "7.50", "ICMS": "32.00", "IBS": "0.15" } },
+      { "ate": "4800000.00", "aliquotaNominal": "29.90", "parcelaDeduzir": "720000.00",
+        "reparticao": { "IRPJ": "8.53", "CSLL": "7.53", "CBS": "25.22", "CPP": "23.59", "IPI": "35.13" } }
+    ]
+  },
+  "III": {
+    "fonte": "LC 123/2006, Anexo III, na redação do Anexo XX da LC 214/2025 (art. 519; efeitos a partir de 1º/1/2027 pelo art. 544, III), tabela 'Para os anos-calendário 2027 e 2028', partilha na redação dada pela LC 227/2026 (art. 174) — https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm#anexo20 e https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm ; conferida com o Anexo III da Resolução CGSN nº 140/2018 na redação da Resolução CGSN nº 190/2026 — https://www.in.gov.br/web/dou/-/resolucao-cgsn-n-190-de-4-de-agosto-de-2026-724454118",
+    "vigencia": { "inicio": "2027-01-01", "fim": "2028-12-31" },
+    "faixas": [
+      { "ate": "180000.00", "aliquotaNominal": "6.00", "parcelaDeduzir": "0.00",
+        "reparticao": { "IRPJ": "4.00", "CSLL": "3.50", "CBS": "15.43", "CPP": "43.40", "ISS": "33.50", "IBS": "0.17" } },
+      { "ate": "360000.00", "aliquotaNominal": "11.20", "parcelaDeduzir": "9360.00",
+        "reparticao": { "IRPJ": "4.00", "CSLL": "3.50", "CBS": "16.91", "CPP": "43.40", "ISS": "32.00", "IBS": "0.19" } },
+      { "ate": "720000.00", "aliquotaNominal": "13.50", "parcelaDeduzir": "17640.00",
+        "reparticao": { "IRPJ": "4.00", "CSLL": "3.50", "CBS": "16.41", "CPP": "43.40", "ISS": "32.50", "IBS": "0.19" } },
+      { "ate": "1800000.00", "aliquotaNominal": "16.00", "parcelaDeduzir": "35640.00",
+        "reparticao": { "IRPJ": "4.00", "CSLL": "3.50", "CBS": "16.41", "CPP": "43.40", "ISS": "32.50", "IBS": "0.19" } },
+      { "ate": "3600000.00", "aliquotaNominal": "21.00", "parcelaDeduzir": "125640.00",
+        "reparticao": { "IRPJ": "4.00", "CSLL": "3.50", "CBS": "15.43", "CPP": "43.40", "ISS": "33.50", "IBS": "0.17" },
+        "tetoIss": {
+          "aliquotaEfetivaAcimaDe": "14.92537",
+          "issFixo": "5.00",
+          "reparticaoDoExcedente": { "IRPJ": "6.02", "CSLL": "5.26", "CBS": "23.20", "CPP": "65.26", "IBS": "0.26" }
+        } },
+      { "ate": "4800000.00", "aliquotaNominal": "32.90", "parcelaDeduzir": "648000.00",
+        "reparticao": { "IRPJ": "35.09", "CSLL": "15.04", "CBS": "19.29", "CPP": "30.58" } }
+    ]
+  },
+  "IV": {
+    "fonte": "LC 123/2006, Anexo IV, na redação do Anexo XXI da LC 214/2025 (art. 519; efeitos a partir de 1º/1/2027 pelo art. 544, III), tabela 'Para os anos-calendário 2027 e 2028' (a LC 227/2026 alterou só as partilhas de 2029 em diante deste Anexo) — https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm#anexo21 ; conferida com o Anexo IV da Resolução CGSN nº 140/2018 na redação da Resolução CGSN nº 190/2026 — https://www.in.gov.br/web/dou/-/resolucao-cgsn-n-190-de-4-de-agosto-de-2026-724454118",
+    "vigencia": { "inicio": "2027-01-01", "fim": "2028-12-31" },
+    "faixas": [
+      { "ate": "180000.00", "aliquotaNominal": "4.50", "parcelaDeduzir": "0.00",
+        "reparticao": { "IRPJ": "18.80", "CSLL": "15.20", "CBS": "21.26", "ISS": "44.50", "IBS": "0.24" } },
+      { "ate": "360000.00", "aliquotaNominal": "9.00", "parcelaDeduzir": "8100.00",
+        "reparticao": { "IRPJ": "19.80", "CSLL": "15.20", "CBS": "24.73", "ISS": "40.00", "IBS": "0.27" } },
+      { "ate": "720000.00", "aliquotaNominal": "10.20", "parcelaDeduzir": "12420.00",
+        "reparticao": { "IRPJ": "20.80", "CSLL": "15.20", "CBS": "23.74", "ISS": "40.00", "IBS": "0.26" } },
+      { "ate": "1800000.00", "aliquotaNominal": "14.00", "parcelaDeduzir": "39780.00",
+        "reparticao": { "IRPJ": "17.80", "CSLL": "19.20", "CBS": "22.75", "ISS": "40.00", "IBS": "0.25" } },
+      { "ate": "3600000.00", "aliquotaNominal": "22.00", "parcelaDeduzir": "183780.00",
+        "reparticao": { "IRPJ": "18.80", "CSLL": "19.20", "CBS": "21.76", "ISS": "40.00", "IBS": "0.24" },
+        "tetoIss": {
+          "aliquotaEfetivaAcimaDe": "12.5",
+          "issFixo": "5.00",
+          "reparticaoDoExcedente": { "IRPJ": "31.33", "CSLL": "32.00", "CBS": "36.27", "IBS": "0.40" }
+        } },
+      { "ate": "4800000.00", "aliquotaNominal": "32.90", "parcelaDeduzir": "828000.00",
+        "reparticao": { "IRPJ": "53.71", "CSLL": "21.59", "CBS": "24.70" } }
+    ]
+  },
+  "V": {
+    "fonte": "LC 123/2006, Anexo V, na redação do Anexo XXII da LC 214/2025 (art. 519; efeitos a partir de 1º/1/2027 pelo art. 544, III), tabela 'Para os anos-calendário 2027 e 2028' — https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm#anexo22 ; conferida com o Anexo V da Resolução CGSN nº 140/2018 na redação da Resolução CGSN nº 190/2026 — https://www.in.gov.br/web/dou/-/resolucao-cgsn-n-190-de-4-de-agosto-de-2026-724454118",
+    "vigencia": { "inicio": "2027-01-01", "fim": "2028-12-31" },
+    "faixas": [
+      { "ate": "180000.00", "aliquotaNominal": "15.50", "parcelaDeduzir": "0.00",
+        "reparticao": { "IRPJ": "25.00", "CSLL": "15.00", "CBS": "16.96", "CPP": "28.85", "ISS": "14.00", "IBS": "0.19" } },
+      { "ate": "360000.00", "aliquotaNominal": "18.00", "parcelaDeduzir": "4500.00",
+        "reparticao": { "IRPJ": "23.00", "CSLL": "15.00", "CBS": "16.96", "CPP": "27.85", "ISS": "17.00", "IBS": "0.19" } },
+      { "ate": "720000.00", "aliquotaNominal": "19.50", "parcelaDeduzir": "9900.00",
+        "reparticao": { "IRPJ": "24.00", "CSLL": "15.00", "CBS": "17.95", "CPP": "23.85", "ISS": "19.00", "IBS": "0.20" } },
+      { "ate": "1800000.00", "aliquotaNominal": "20.50", "parcelaDeduzir": "17100.00",
+        "reparticao": { "IRPJ": "21.00", "CSLL": "15.00", "CBS": "18.94", "CPP": "23.85", "ISS": "21.00", "IBS": "0.21" } },
+      { "ate": "3600000.00", "aliquotaNominal": "23.00", "parcelaDeduzir": "62100.00",
+        "reparticao": { "IRPJ": "23.00", "CSLL": "12.50", "CBS": "16.96", "CPP": "23.85", "ISS": "23.50", "IBS": "0.19" } },
+      { "ate": "4800000.00", "aliquotaNominal": "30.40", "parcelaDeduzir": "540000.00",
+        "reparticao": { "IRPJ": "35.10", "CSLL": "15.54", "CBS": "19.78", "CPP": "29.58" } }
+    ]
+  }
+}
