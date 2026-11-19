@@ -2,6 +2,29 @@ import type { Documento, DocumentoIgnorado, GrupoIbsCbsNota, ItemDocumento } fro
 import { ErroLeitura, descendente, filho, filhos, lerParte, texto, valor } from './xmlUtil.ts';
 
 const RAIZES_EVENTO = new Set(['procEventoNFe', 'envEvento', 'evento', 'retEvento']);
+/** tpEvento de cancelamento (MOC da NF-e): 110111 cancelamento; 110112 cancelamento por substituição (NFC-e). */
+const EVENTOS_CANCELAMENTO = new Set(['110111', '110112']);
+/** cStat do retorno que registram o evento: 135 vinculado, 136 não vinculado, 155 cancelamento fora de prazo. */
+const CSTAT_EVENTO_REGISTRADO = new Set(['135', '136', '155']);
+
+/**
+ * Chaves canceladas por um arquivo de evento. Pedido (evento/infEvento) com tpEvento de cancelamento; se o arquivo
+ * traz o retorno da SEFAZ (retEvento) e o cStat não registra o evento, o cancelamento não vale.
+ */
+function chavesCanceladas(raiz: Element): string[] {
+  const retornos = raiz.localName === 'retEvento' ? [raiz] : filhos(raiz, 'retEvento');
+  const recusado = retornos.some((r) => {
+    const cStat = texto(filho(r, 'infEvento'), 'cStat');
+    return cStat !== undefined && !CSTAT_EVENTO_REGISTRADO.has(cStat);
+  });
+  if (recusado) return [];
+  const pedidos = raiz.localName === 'evento' || raiz.localName === 'retEvento' ? [raiz] : filhos(raiz, 'evento');
+  return pedidos
+    .map((e) => filho(e, 'infEvento'))
+    .filter((inf) => EVENTOS_CANCELAMENTO.has(texto(inf, 'tpEvento') ?? ''))
+    .map((inf) => texto(inf, 'chNFe'))
+    .filter((c): c is string => c !== undefined);
+}
 
 function ignorado(arquivo: string, motivo: DocumentoIgnorado['motivo'], detalhe: string): DocumentoIgnorado {
   return { arquivo, motivo, detalhe };
@@ -46,7 +69,9 @@ export function lerNFe(xml: Document, arquivo: string): Documento | DocumentoIgn
   const raiz = xml.documentElement;
   const nomeRaiz = raiz.localName;
   if (RAIZES_EVENTO.has(nomeRaiz)) {
-    return ignorado(arquivo, 'EVENTO', 'Evento fiscal (cancelamento, carta de correção etc.), não é um documento de operação.');
+    const canceladas = chavesCanceladas(raiz);
+    const r = ignorado(arquivo, 'EVENTO', 'Evento fiscal (cancelamento, carta de correção etc.), não é um documento de operação.');
+    return canceladas.length > 0 ? { ...r, chavesCanceladas: canceladas } : r;
   }
   const infNFe = nomeRaiz === 'infNFe' ? raiz : descendente(raiz, 'infNFe');
   if (!infNFe) {

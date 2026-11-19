@@ -92,7 +92,7 @@ function abrirZip(nome: string, bytes: Uint8Array, nivel: number, orcamento: Orc
   }
 }
 
-/** Lê XMLs soltos e ZIPs (com subpastas e um nível de ZIP aninhado); deduplica pela chave de acesso. */
+/** Lê XMLs soltos e ZIPs (com subpastas e um nível de ZIP aninhado); deduplica pela chave de acesso e tira as canceladas. */
 export async function lerArquivos(arquivos: File[]): Promise<ResultadoLeitura> {
   const entradas: Entrada[] = [];
   const ignorados: DocumentoIgnorado[] = [];
@@ -138,5 +138,14 @@ export async function lerArquivos(arquivos: File[]): Promise<ResultadoLeitura> {
       documentos.push(r);
     }
   }
-  return { documentos, ignorados };
+
+  // Nota cancelada por evento presente no lote não é operação: sai da análise (o par é pela chave de acesso).
+  const canceladaPor = new Map<string, string>();
+  for (const i of ignorados) for (const chave of i.chavesCanceladas ?? []) canceladaPor.set(chave, i.arquivo);
+  const validos = documentos.filter((d) => {
+    const evento = canceladaPor.get(d.chave);
+    if (evento) ignorados.push({ arquivo: d.arquivo, motivo: 'CANCELADA', detalhe: `Cancelada pelo evento em ${evento}.` });
+    return !evento;
+  });
+  return { documentos: validos, ignorados };
 }

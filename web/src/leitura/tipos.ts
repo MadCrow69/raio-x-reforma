@@ -7,6 +7,7 @@ export type MotivoIgnorado =
   | 'MUITO_GRANDE'
   | 'NFSE_MUNICIPAL'
   | 'EVENTO'
+  | 'CANCELADA'
   | 'DEVOLUCAO'
   | 'DUPLICADO'
   | 'OUTRA_EMPRESA';
@@ -59,6 +60,8 @@ export interface DocumentoIgnorado {
   arquivo: string;
   motivo: MotivoIgnorado;
   detalhe?: string;
+  /** Só em EVENTO de cancelamento homologado: chaves das NF-e/NFC-e canceladas (tiradas do lote em lerArquivos). */
+  chavesCanceladas?: string[];
 }
 
 export interface ResultadoLeitura {

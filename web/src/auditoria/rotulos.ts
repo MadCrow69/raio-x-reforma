@@ -37,6 +37,7 @@ export const ROTULO_MOTIVO_IGNORADO: Record<MotivoIgnorado, string> = {
   MUITO_GRANDE: 'Arquivo grande demais',
   NFSE_MUNICIPAL: 'NFS-e municipal (só a nacional é lida)',
   EVENTO: 'Evento da nota (cancelamento, correção…)',
+  CANCELADA: 'Nota cancelada',
   DEVOLUCAO: 'Nota de devolução',
   DUPLICADO: 'Nota repetida',
   OUTRA_EMPRESA: 'Outra empresa',

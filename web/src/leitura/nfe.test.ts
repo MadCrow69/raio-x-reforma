@@ -42,9 +42,32 @@ describe('lerNFe', () => {
     expect(d.destinatario).toBeUndefined();
   });
 
-  it('procEventoNFe é ignorado como EVENTO', () => {
+  it('procEventoNFe é ignorado como EVENTO e o cancelamento informa a chave cancelada', () => {
     const r = lerNFe(xmlFixture('evento_cancelamento.xml'), 'e.xml');
+    expect(r).toMatchObject({ motivo: 'EVENTO', chavesCanceladas: ['41260311111111000111550010000000011100000019'] });
+  });
+
+  const evento = (tpEvento: string, retorno = '') =>
+    new DOMParser().parseFromString(
+      `<procEventoNFe xmlns="http://www.portalfiscal.inf.br/nfe"><evento><infEvento><chNFe>4126</chNFe><tpEvento>${tpEvento}</tpEvento></infEvento></evento>${retorno}</procEventoNFe>`,
+      'application/xml',
+    );
+
+  it('cancelamento por substituição (NFC-e, 110112) também cancela', () => {
+    expect(lerNFe(evento('110112'), 'e.xml')).toMatchObject({ chavesCanceladas: ['4126'] });
+  });
+
+  it('carta de correção (110110) não cancela', () => {
+    const r = lerNFe(evento('110110'), 'e.xml');
     expect(r).toMatchObject({ motivo: 'EVENTO' });
+    expect('chavesCanceladas' in r ? r.chavesCanceladas : undefined).toBeUndefined();
+  });
+
+  it('cancelamento rejeitado pela SEFAZ (cStat fora de 135/136/155) não cancela', () => {
+    const rejeitado = evento('110111', '<retEvento><infEvento><cStat>573</cStat></infEvento></retEvento>');
+    expect(lerNFe(rejeitado, 'e.xml')).not.toHaveProperty('chavesCanceladas');
+    const aceito = evento('110111', '<retEvento><infEvento><cStat>135</cStat></infEvento></retEvento>');
+    expect(lerNFe(aceito, 'e.xml')).toMatchObject({ chavesCanceladas: ['4126'] });
   });
 
   it('finNFe=4 é ignorado como DEVOLUCAO', () => {

@@ -77,6 +77,16 @@ describe('lerArquivos', () => {
     expect(grandes.length).toBeGreaterThanOrEqual(1);
     expect(grandes[0].detalhe).toMatch(/300 MB/);
   }, 60_000);
+  it('NF-e com evento de cancelamento no lote sai dos documentos como CANCELADA', async () => {
+    const r = await lerArquivos([arquivoFixture('nfe_sem_ibscbs.xml'), arquivoFixture('nfce.xml'), arquivoFixture('evento_cancelamento.xml')]);
+    expect(r.documentos.map((d) => d.tipo)).toEqual(['NFCE']);
+    expect(r.ignorados.map((i) => [i.arquivo, i.motivo])).toEqual([
+      ['evento_cancelamento.xml', 'EVENTO'],
+      ['nfe_sem_ibscbs.xml', 'CANCELADA'],
+    ]);
+    expect(r.ignorados[1].detalhe).toContain('evento_cancelamento.xml');
+  });
+
   it('mistura eventos e NFS-e municipal nos ignorados', async () => {
     const r = await lerArquivos([arquivoFixture('evento_cancelamento.xml'), arquivoFixture('nfse_municipal.xml')]);
     expect(r.ignorados.map((i) => i.motivo).sort()).toEqual(['EVENTO', 'NFSE_MUNICIPAL']);

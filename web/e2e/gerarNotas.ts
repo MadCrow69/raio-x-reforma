@@ -2,11 +2,13 @@
  * Gera notas fiscais SINTÉTICAS (nenhum dado real) para o teste ponta a ponta e para a medição de layout.
  * Determinístico: a mesma semente produz exatamente os mesmos arquivos.
  *
- * Composição (203 arquivos, 200 notas válidas):
- *  - 150 vendas da empresa: 70 NF-e PJ, 30 NF-e PF, 30 NFC-e, 20 NFS-e nacional (60% PJ por quantidade);
+ * Composição (203 arquivos, 200 notas, 199 na análise):
+ *  - 150 vendas da empresa: 70 NF-e PJ, 30 NF-e PF, 30 NFC-e, 20 NFS-e nacional (60% PJ por quantidade); uma das NF-e PJ
+ *    é cancelada pelo evento do lote e fica de fora (149 vendas analisadas);
  *  - 50 compras (NF-e de 3 fornecedores, com grupo IBSCBS nas alíquotas de teste de 2026: CBS 0,9% e IBS 0,1%);
  *  - 3 NCMs com alíquota reduzida (da tabela oficial exportada), 1 NCM incompatível com o cClassTrib da nota
- *    (numa venda e numa compra; o motor regular responde REG-011), 2 arquivos duplicados e 1 evento de cancelamento.
+ *    (numa venda e numa compra; o motor regular responde REG-011), 2 arquivos duplicados e 1 evento de cancelamento
+ *    (de uma venda do lote).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -19,9 +21,9 @@ export const PASTA_NOTAS = join(tmpdir(), 'raio-x-e2e');
 
 /** Totais esperados pelo teste (fonte única: o teste importa daqui). */
 export const ESPERADO = {
-  notasLidas: 200,
-  ignorados: 3, // 2 duplicadas + 1 evento
-  vendas: 150,
+  notasLidas: 199, // 200 notas − 1 cancelada
+  ignorados: 4, // 2 duplicadas + 1 evento + 1 nota cancelada por ele
+  vendas: 149,
   compras: 50,
   arquivos: 203,
 } as const;
@@ -308,6 +310,7 @@ export function gerarNotas(pasta: string = PASTA_NOTAS): NotasGeradas {
     const origem = [...arquivos.entries()].find(([nome]) => nome.includes(chaves[i]));
     if (origem) arquivos.set(`duplicadas/copia-${i + 1}-${chaves[i]}.xml`, origem[1]);
   }
+  // chaves[5] é uma venda (NF-e PJ): o evento a cancela e ela sai da análise.
   arquivos.set(`eventos/cancelamento-${chaves[5]}.xml`, xmlEventoCancelamento(chaves[5]));
 
   mkdirSync(pasta, { recursive: true });

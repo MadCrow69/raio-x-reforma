@@ -16,6 +16,8 @@ test('fluxo completo: enviar, confirmar, calcular nos motores reais e auditar', 
 
   // 1. Enviar
   await enviarNotas(page, notas);
+  // a venda cancelada pelo evento do lote fica de fora, com o motivo
+  await expect(page.getByText('Nota cancelada', { exact: true })).toBeVisible();
   await continuar(page);
 
   // 2. Confirmar (sem trocar nenhuma classificação: o NCM incompatível segue com o cClassTrib da nota → REG-011)
