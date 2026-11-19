@@ -94,6 +94,9 @@ export function simular(entrada: EntradaSimulacao): ResultadoSimulacao {
       receitaTotal = receitaTotal.plus(it.baseCalculo);
       const d = dentro.get(chaveItem(v.chave, it.numero));
       const f = fora.get(chaveItem(v.chave, it.numero));
+      // `!aliquotas` é caminho defensivo, inalcançável pela interface: Confirmar só libera "Calcular" quando todo tipo de
+      // nota presente nas vendas tem atividade (e alíquota) resolvida (ver o teste de Confirmar). Por isso o atalho "Ver na
+      // Auditoria" dos excluídos bate com `itensExcluidos`.
       if (!aliquotas || d?.estado !== 'CALCULO_SIMULADO' || f?.estado !== 'CALCULO_SIMULADO') {
         itensExcluidos++;
         return false;

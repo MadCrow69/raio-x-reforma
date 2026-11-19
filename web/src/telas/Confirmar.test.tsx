@@ -203,6 +203,16 @@ describe('Confirmar — atividade do Simples', () => {
     expect(screen.getByRole('button', { name: /Atividade das NFS-e/ })).toBeTruthy();
   });
 
+  it('Calcular fica desabilitado enquanto algum tipo de nota presente não tem atividade (garante que o simular nunca exclui item por falta de atividade)', async () => {
+    montar();
+    await escolherAtividade(/Atividade das NF-e e NFC-e/, '01');
+    digitar(campoRbt12(), '1.000.000,00');
+    await waitFor(() => expect(screen.getByText('Escolha a atividade das NFS-e.')).toBeTruthy());
+    expect(botaoCalcular().disabled).toBe(true);
+    await escolherAtividade(/Atividade das NFS-e/, '07');
+    await waitFor(() => expect(botaoCalcular().disabled).toBe(false));
+  });
+
   it('só NF-e: não pede atividade de NFS-e', async () => {
     montar(soVendasNFe());
     expect(await screen.findByRole('button', { name: /Atividade das NF-e e NFC-e/ })).toBeTruthy();

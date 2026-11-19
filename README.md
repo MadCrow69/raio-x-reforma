@@ -7,8 +7,9 @@ regime regular?
 
 > **Projeto independente, sem vínculo com a Receita Federal.** Simulação educativa; não substitui a orientação do seu contador.
 
-<!-- TODO: gravar o GIF do fluxo completo (enviar → confirmar → resultado) e salvar em docs/demo.gif -->
+<!-- TODO: gravar o GIF do fluxo completo (enviar → confirmar → resultado), salvar em docs/demo.gif e descomentar:
 ![Demonstração do fluxo completo](docs/demo.gif)
+-->
 
 ## Por que existe
 
@@ -112,4 +113,4 @@ Este projeto é independente e não possui vínculo com a Receita Federal do Bra
 
 ## Licença
 
-[MIT](LICENSE).
+[MIT](LICENSE) © 2026 MadCrow69.

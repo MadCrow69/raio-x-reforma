@@ -6,7 +6,7 @@
  *  - 150 vendas da empresa: 70 NF-e PJ, 30 NF-e PF, 30 NFC-e, 20 NFS-e nacional (60% PJ por quantidade);
  *  - 50 compras (NF-e de 3 fornecedores, com grupo IBSCBS);
  *  - 3 NCMs com alíquota reduzida (da tabela oficial exportada), 1 NCM incompatível com o cClassTrib da nota
- *    (numa compra; o motor regular responde REG-011), 2 arquivos duplicados e 1 evento de cancelamento.
+ *    (numa venda e numa compra; o motor regular responde REG-011), 2 arquivos duplicados e 1 evento de cancelamento.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
