@@ -188,20 +188,16 @@ export function xmlNFe(d: DadosNFe): { chave: string; xml: string } {
   return { chave, xml };
 }
 
+/** NFS-e nacional de 2026: sem o grupo IBSCBS (como as reais). */
 function xmlNFSe(p: { cnpj: string; nome: string; toma: string; nomeToma: string; numero: number; emissao: string; valor: number; servico: (typeof SERVICOS)[number]; municipio: (typeof MUNICIPIOS)[number] }): { chave: string; xml: string } {
   const idBase = `${p.municipio.cMun}2${p.cnpj}${String(p.numero).padStart(13, '0')}2605`;
   const chave = (idBase + String(p.numero * 104729).padStart(50 - idBase.length, '0')).slice(0, 50);
-  const g = { cst: '000', cClassTrib: '000001' };
-  const vCBS = arredondar((p.valor * ALIQ.cbs) / 100);
-  const vUF = arredondar((p.valor * ALIQ.ibsUF) / 100);
-  const vMun = arredondar((p.valor * ALIQ.ibsMun) / 100);
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <NFSe versao="1.01" xmlns="http://www.sped.fazenda.gov.br/nfse">
   <infNFSe Id="NFS${chave}">
     <nNFSe>${p.numero}</nNFSe>
     <emit><CNPJ>${p.cnpj}</CNPJ><xNome>${p.nome}</xNome><enderNac><cMun>${p.municipio.cMun}</cMun><UF>${p.municipio.uf}</UF></enderNac></emit>
     <valores><vBC>${dinheiro(p.valor)}</vBC><vISSQN>${dinheiro(p.valor * 0.05)}</vISSQN><vLiq>${dinheiro(p.valor)}</vLiq></valores>
-    <IBSCBS><valores><vBC>${dinheiro(p.valor)}</vBC></valores><totCIBS><gIBS><vIBSTot>${dinheiro(vUF + vMun)}</vIBSTot><gIBSUFTot><vIBSUF>${dinheiro(vUF)}</vIBSUF></gIBSUFTot><gIBSMunTot><vIBSMun>${dinheiro(vMun)}</vIBSMun></gIBSMunTot></gIBS><gCBS><vCBS>${dinheiro(vCBS)}</vCBS></gCBS></totCIBS></IBSCBS>
     <DPS versao="1.01"><infDPS Id="DPS${p.numero}">
       <dhEmi>${p.emissao}</dhEmi>
       <prest><CNPJ>${p.cnpj}</CNPJ><regTrib><opSimpNac>1</opSimpNac></regTrib></prest>
@@ -209,7 +205,6 @@ function xmlNFSe(p: { cnpj: string; nome: string; toma: string; nomeToma: string
       <serv><cServ><cTribNac>${p.servico.trib}</cTribNac><xDescServ>${p.servico.nome}</xDescServ><cNBS>${p.servico.nbs}</cNBS></cServ></serv>
       <valores><vServPrest><vServ>${dinheiro(p.valor)}</vServ></vServPrest>
         <trib><tribMun><tribISSQN>1</tribISSQN></tribMun></trib></valores>
-      <IBSCBS><valores><trib><gIBSCBS><CST>${g.cst}</CST><cClassTrib>${g.cClassTrib}</cClassTrib></gIBSCBS></trib></valores></IBSCBS>
     </infDPS></DPS>
   </infNFSe>
 </NFSe>
@@ -246,15 +241,16 @@ export function gerarNotas(pasta: string = PASTA_NOTAS): NotasGeradas {
   const chaves: string[] = [];
   let sequencial = 1;
 
-  // Itens de venda: 1-3 por nota; ~1/3 com grupo IBSCBS (alíquota cheia ou reduzida), o resto sem grupo na nota.
+  // Itens de venda: notas de 2026 de empresa do Simples não trazem o grupo IBSCBS (como as reais); a classificação
+  // sai da tabela oficial na tela Confirmar. Exceção: a nota com o NCM incompatível, que traz o cClassTrib errado.
   const itemVenda = (): ItemGerado => {
     const sorteio = alea();
     if (sorteio < 0.12) {
       const r = escolher(NCMS_REDUZIDOS);
-      return { ncm: r.ncm, nome: r.nome, valor: valor(), grupo: { cst: r.cst, cClassTrib: r.cClassTrib, reducao: r.reducao } };
+      return { ncm: r.ncm, nome: r.nome, valor: valor() };
     }
     const n = escolher(NCMS_NORMAIS);
-    return { ncm: n.ncm, nome: n.nome, valor: valor(), grupo: sorteio < 0.45 ? { cst: '000', cClassTrib: '000001', reducao: 0 } : undefined };
+    return { ncm: n.ncm, nome: n.nome, valor: valor() };
   };
   const itensVenda = () => Array.from({ length: 1 + Math.floor(alea() * 3) }, itemVenda);
 
@@ -266,7 +262,7 @@ export function gerarNotas(pasta: string = PASTA_NOTAS): NotasGeradas {
   };
 
   // 150 vendas
-  for (let i = 0; i < 67; i++) adicionarNFe('vendas/nfe', { mod: '55', emitente: empresa, destinatario: escolher(clientesPJ), municipio: escolher(MUNICIPIOS), itens: itensVenda() });
+  for (let i = 0; i < 66; i++) adicionarNFe('vendas/nfe', { mod: '55', emitente: empresa, destinatario: escolher(clientesPJ), municipio: escolher(MUNICIPIOS), itens: itensVenda() });
   for (let i = 0; i < 30; i++) adicionarNFe('vendas/nfe', { mod: '55', emitente: empresa, destinatario: escolher(clientesPF), municipio: escolher(MUNICIPIOS), itens: itensVenda() });
   for (let i = 0; i < 30; i++) adicionarNFe('vendas/nfce', { mod: '65', emitente: empresa, municipio: MUNICIPIOS[0], itens: [itemVenda()] });
   for (let i = 0; i < 20; i++) {
@@ -278,15 +274,19 @@ export function gerarNotas(pasta: string = PASTA_NOTAS): NotasGeradas {
     arquivos.set(`vendas/nfse/${chave}.xml`, xml);
   }
 
-  // 3 NCMs com redução garantidos (completam as 70 NF-e PJ).
+  // 3 NCMs com redução garantidos e o NCM incompatível (completam as 70 NF-e PJ).
   for (const r of NCMS_REDUZIDOS) {
     adicionarNFe('vendas/nfe', {
       mod: '55', emitente: empresa, destinatario: clientesPJ[0], municipio: MUNICIPIOS[0],
-      itens: [{ ncm: r.ncm, nome: r.nome, valor: 1500, grupo: { cst: r.cst, cClassTrib: r.cClassTrib, reducao: r.reducao } }],
+      itens: [{ ncm: r.ncm, nome: r.nome, valor: 1500 }],
     });
   }
-  // 50 compras (3 fornecedores) com IBSCBS. A última traz o NCM incompatível com o cClassTrib: o motor regular
-  // (que calcula as compras) responde REG-011. Nas vendas a auditoria usa o motor do Simples, que não valida NCM × cClassTrib.
+  adicionarNFe('vendas/nfe', {
+    mod: '55', emitente: empresa, destinatario: clientesPJ[1], municipio: MUNICIPIOS[0],
+    itens: [{ ncm: INCOMPATIVEL.ncm, nome: INCOMPATIVEL.nome, valor: 800, grupo: { cst: INCOMPATIVEL.cst, cClassTrib: INCOMPATIVEL.cClassTrib, reducao: 60 } }],
+  });
+
+  // 50 compras (3 fornecedores) com IBSCBS (o fornecedor já emite o grupo). A primeira repete o NCM incompatível.
   adicionarNFe('compras', {
     mod: '55', emitente: fornecedores[0], destinatario: { doc: empresa.cnpj, tipo: 'PJ', nome: empresa.nome },
     municipio: MUNICIPIOS[0],

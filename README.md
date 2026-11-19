@@ -96,8 +96,10 @@ nos 7 tamanhos de tela estão em [`docs/medicao-layout.md`](docs/medicao-layout.
 - **Créditos proporcionais à receita incluída:** o crédito das compras é rateado conforme a receita efetivamente incluída no cálculo.
 - **Alíquotas de 2027 de referência:** os dados abertos de 2027 ainda não existem (HTTP 404); o cálculo usa alíquotas de
   referência, e notas de 2026 são simuladas como se fossem de 2027.
-- **Auditoria das vendas:** o valor recalculado das vendas vem do motor do Simples, que não valida NCM × cClassTrib nem compara na
-  mesma base que o IBS/CBS destacado na nota; a validação completa (`REG-xxx`) aparece nas compras.
+- **Auditoria das vendas:** os valores recalculados vêm do motor do Simples (o certo para quem é do Simples); a validação de
+  CST × cClassTrib × NCM/NBS vem do motor do regime regular, rodado nos mesmos itens, e seus erros (`REG-xxx`) entram na linha da
+  venda. O valor destacado na nota (regime regular) pode divergir do valor do Simples por natureza: leia "valor divergente" como
+  um ponto de atenção, não como erro da nota.
 
 ## Créditos
 

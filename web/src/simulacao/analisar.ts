@@ -75,6 +75,6 @@ export async function analisar(
     aliquotasPorAtividade: parametros.aliquotasSimples,
     origemCompras: origem,
   });
-  const auditoria = auditar(vendas, compras, [...porDentro, ...comprasCalculadas], parametros.classificacoes);
+  const auditoria = auditar(vendas, compras, [...porDentro, ...comprasCalculadas], parametros.classificacoes, porFora);
   return { auditoria, simulacao, comprasSemCredito: somados?.itensSemCredito ?? 0 };
 }

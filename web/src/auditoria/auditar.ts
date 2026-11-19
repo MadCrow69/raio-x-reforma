@@ -29,7 +29,18 @@ export interface LinhaAuditoria {
 
 export const TOLERANCIA = Big('0.01'); // por tributo, em R$
 
-function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<string, ItemCalculado>, classificacoes: Classificacoes): LinhaAuditoria[] {
+/**
+ * `validacao` (só nas vendas): o resultado do regime regular para o mesmo item. Os valores da linha seguem vindo de
+ * `porItem` (Simples), mas o motor regular é quem valida CST × cClassTrib × NCM/NBS: se ele recusou o item, o erro entra
+ * na linha e o achado vira ERRO_MOTOR; se não o calculou e sem erro, o achado vira NAO_CALCULADO.
+ */
+function linhasDe(
+  docs: Documento[],
+  papel: 'VENDA' | 'COMPRA',
+  porItem: Map<string, ItemCalculado>,
+  classificacoes: Classificacoes,
+  validacao?: Map<string, ItemCalculado>,
+): LinhaAuditoria[] {
   const linhas: LinhaAuditoria[] = [];
   for (const d of docs) {
     for (const it of d.itens) {
@@ -40,7 +51,12 @@ function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<str
       const vNota = g ? g.vCBS.plus(g.vIBSUF).plus(g.vIBSMun) : undefined;
       let achado: Achado;
       let diferenca: Big | undefined;
-      if (!c) achado = 'NAO_CALCULADO';
+      const v = validacao?.get(chaveItem(d.chave, it.numero));
+      const errosValidacao = validacao && c?.estado === 'CALCULO_SIMULADO' ? (v?.erros ?? []) : [];
+      const validacaoSemCalculo = validacao !== undefined && c?.estado === 'CALCULO_SIMULADO' && v?.estado !== 'CALCULO_SIMULADO';
+      if (errosValidacao.length > 0) achado = 'ERRO_MOTOR';
+      else if (validacaoSemCalculo) achado = 'NAO_CALCULADO';
+      else if (!c) achado = 'NAO_CALCULADO';
       else if (c.estado !== 'CALCULO_SIMULADO') achado = c.erros.length > 0 ? 'ERRO_MOTOR' : 'NAO_CALCULADO';
       else if (!g) achado = 'SEM_GRUPO_NA_NOTA';
       else {
@@ -63,7 +79,7 @@ function linhasDe(docs: Documento[], papel: 'VENDA' | 'COMPRA', porItem: Map<str
         cClassTrib: confirmada?.cClassTrib ?? g?.cClassTrib ?? '',
         estado: c?.estado ?? 'NAO_CALCULADO',
         achado,
-        erros: c?.erros ?? [],
+        erros: [...(c?.erros ?? []), ...errosValidacao],
         vNota,
         vMotor,
         diferenca,
@@ -80,7 +96,10 @@ export function auditar(
   compras: Documento[],
   calculados: ItemCalculado[],
   classificacoes: Classificacoes = {},
+  /** Resultado do regime regular para as vendas (porFora): valida NCM × cClassTrib, que o motor do Simples não valida. */
+  validacaoVendas?: ItemCalculado[],
 ): LinhaAuditoria[] {
   const porItem = new Map(calculados.map((c) => [chaveItem(c.chave, c.numero), c]));
-  return [...linhasDe(vendas, 'VENDA', porItem, classificacoes), ...linhasDe(compras, 'COMPRA', porItem, classificacoes)];
+  const validacao = validacaoVendas && new Map(validacaoVendas.map((c) => [chaveItem(c.chave, c.numero), c]));
+  return [...linhasDe(vendas, 'VENDA', porItem, classificacoes, validacao), ...linhasDe(compras, 'COMPRA', porItem, classificacoes)];
 }

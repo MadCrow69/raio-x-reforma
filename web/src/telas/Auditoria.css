@@ -74,3 +74,16 @@
   color: var(--cor-texto-2);
   overflow-wrap: anywhere;
 }
+
+/* Tela baixa (notebook com a barra do navegador): o título e a contagem saem da vista (continuam para leitor de tela;
+   a contagem também está no selo da aba e no rodapé da tabela) e a tabela ganha uma linha a mais. */
+@media (max-height: 700px) and (min-width: 768px) {
+  .auditoria__cabecalho {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

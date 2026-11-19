@@ -57,3 +57,26 @@
   flex: 1 1 auto;
   min-height: 0;
 }
+
+/* Abas dentro do cabeçalho: embaixo da linha do título no Resumo; na mesma linha nas telas de lista. */
+.resultado__abas {
+  order: 3;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.resultado__nova {
+  order: 2;
+}
+
+.resultado__cabecalho--compacto .resultado__abas {
+  order: 1;
+  flex: 1 1 auto;
+}
+
+@media (max-width: 767px) {
+  .resultado__cabecalho--compacto .resultado__abas {
+    order: 3;
+    flex: 1 1 100%;
+  }
+}

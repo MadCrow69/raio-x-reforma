@@ -40,7 +40,7 @@ export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaix
   function verAuditoria(alvo: FocoAuditoria) {
     setEstadoAuditoria({
       ...ESTADO_AUDITORIA_INICIAL,
-      filtros: { ...SEM_FILTROS, achado: ACHADOS_SEM_CALCULO, papel: alvo === 'COMPRAS_SEM_CREDITO' ? ['COMPRA'] : [] },
+      filtros: { ...SEM_FILTROS, achado: ACHADOS_SEM_CALCULO, papel: [alvo === 'COMPRAS_SEM_CREDITO' ? 'COMPRA' : 'VENDA'] },
     });
     setAba('AUDITORIA');
   }
@@ -52,31 +52,33 @@ export default function Resultado({ cnpjEmpresa, simulacao, auditoria, sextaFaix
 
   return (
     <div className={aba === 'RESUMO' ? 'resultado' : 'resultado resultado--lista'}>
-      <header className="resultado__cabecalho">
+      {/* Nas telas de lista a barra é uma linha só (empresa · abas · Nova análise): sobra altura para as linhas da tabela. */}
+      <header className={aba === 'RESUMO' ? 'resultado__cabecalho' : 'resultado__cabecalho resultado__cabecalho--compacto'}>
         <div className="resultado__titulos">
           <h1 className="resultado__titulo">Resultado</h1>
           {cnpjEmpresa && <p className="resultado__empresa">{formatarCnpj(cnpjEmpresa)}</p>}
         </div>
-        <Botao variante="secundario" icone={RotateCcw} onClick={aoNovaAnalise}>
+        <div className="resultado__abas">
+          <Segmentado
+            modo="abas"
+            idBase={idBase}
+            rotulo="Seções do resultado"
+            valor={aba}
+            aoMudar={(a) => {
+              setAba(a);
+              setFoco(null);
+            }}
+            opcoes={[
+              { valor: 'RESUMO', rotulo: 'Resumo' },
+              { valor: 'AUDITORIA', rotulo: 'Auditoria', contador: comAchado.length },
+              { valor: 'MEMORIA', rotulo: 'Memória de cálculo' },
+            ]}
+          />
+        </div>
+        <Botao variante="secundario" icone={RotateCcw} onClick={aoNovaAnalise} className="resultado__nova">
           Nova análise
         </Botao>
       </header>
-
-      <Segmentado
-        modo="abas"
-        idBase={idBase}
-        rotulo="Seções do resultado"
-        valor={aba}
-        aoMudar={(a) => {
-          setAba(a);
-          setFoco(null);
-        }}
-        opcoes={[
-          { valor: 'RESUMO', rotulo: 'Resumo' },
-          { valor: 'AUDITORIA', rotulo: 'Auditoria', contador: comAchado.length },
-          { valor: 'MEMORIA', rotulo: 'Memória de cálculo' },
-        ]}
-      />
 
       <div role="tabpanel" id={idPainel(idBase, aba)} aria-labelledby={idAba(idBase, aba)} className="resultado__painel">
         {aba === 'RESUMO' && (

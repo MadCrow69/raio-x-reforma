@@ -39,7 +39,8 @@ export const ESTADO_AUDITORIA_INICIAL: EstadoAuditoria = {
 /** Achados de itens que o motor não calculou (valor do motor não é um valor calculado). */
 export const ACHADOS_SEM_CALCULO: LinhaAuditoria['achado'][] = ['NAO_CALCULADO', 'ERRO_MOTOR'];
 
-export const semCalculo = (l: LinhaAuditoria) => ACHADOS_SEM_CALCULO.includes(l.achado);
+/** Venda que o Simples calculou mas o regime regular recusou (ERRO_MOTOR com estado simulado) mantém o valor do Simples. */
+export const semCalculo = (l: LinhaAuditoria) => ACHADOS_SEM_CALCULO.includes(l.achado) && l.estado !== 'CALCULO_SIMULADO';
 
 /** Minúsculas e sem acento, para busca tolerante. */
 export const normalizar = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();

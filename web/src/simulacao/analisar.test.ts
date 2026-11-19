@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Documento, ItemDocumento, TipoDocumento } from '../leitura/tipos';
 import type { Cenario, EstadoItem, ItemCalculado, ParametrosCalculo } from '../motor/tipos';
 import type { AliquotasSimples } from '../regras/simples/aliquotaEfetiva';
+import { ACHADOS_SEM_CALCULO, SEM_FILTROS, filtrar } from '../auditoria/tabela';
 import { analisar, FalhaDoMotor, usaSextaFaixa } from './analisar';
 import type { OrigemCompras } from './simular';
 
@@ -123,5 +124,26 @@ describe('analisar', () => {
     expect(real.comprasSemCredito).toBe(1);
     const estimada = await analisar({ vendas: [doc('v1', 'PJ')], compras: [], parametros: PARAMETROS, origemCompras: ESTIMADA }, undefined, parcial);
     expect(estimada.comprasSemCredito).toBe(0);
+  });
+
+  it('o atalho "Ver na Auditoria" dos itens excluídos mostra exatamente itensExcluidos linhas de venda', async () => {
+    const recusadoNoRegular = { code: 'REG-011', title: 'NCM não vinculada', detail: 'd' };
+    const vendas = [doc('v1', 'PJ', [item(1), item(2), item(3)]), doc('v2', 'PF')];
+    const compras = [doc('c1', 'PJ', [item(1)])];
+    const calcular = vi.fn(async (docs: Documento[], cenario: Cenario) =>
+      docs.flatMap((d) =>
+        calculados(d, ['10', '1', '0'], 'CALCULO_SIMULADO').map((c): ItemCalculado => {
+          if (cenario === 'SIMPLES_POR_FORA' && d.chave === 'v1' && c.numero === 2) return { ...c, estado: 'INCONSISTENCIA_ENTRADA', erros: [recusadoNoRegular] };
+          if (cenario === 'SIMPLES_POR_FORA' && d.chave === 'v1' && c.numero === 3) return { ...c, estado: 'FALHA_TECNICA' };
+          if (cenario === 'REGULAR_AUDITORIA') return { ...c, estado: 'INCONSISTENCIA_ENTRADA', erros: [recusadoNoRegular] }; // compra com erro: fora do atalho
+          return c;
+        }),
+      ),
+    );
+    const r = await analisar({ vendas, compras, parametros: PARAMETROS, origemCompras: REAL }, undefined, calcular);
+    expect(r.simulacao.itensExcluidos).toBe(2);
+    const atalho = filtrar(r.auditoria, '', { ...SEM_FILTROS, achado: ACHADOS_SEM_CALCULO, papel: ['VENDA'] });
+    expect(atalho).toHaveLength(r.simulacao.itensExcluidos);
+    expect(atalho.map((l) => l.item).sort()).toEqual([2, 3]);
   });
 });

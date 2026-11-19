@@ -143,3 +143,15 @@
     padding-bottom: var(--esp-3);
   }
 }
+
+/* Notebook com a barra do navegador (altura ≤ 700 px): margens menores nas telas de lista para caber mais linhas. */
+@media (min-width: 1024px) and (max-height: 700px) {
+  .app:has(.resultado--lista) .app__conteudo {
+    padding-top: var(--esp-2);
+    padding-bottom: var(--esp-2);
+  }
+
+  .resultado--lista {
+    gap: var(--esp-3);
+  }
+}

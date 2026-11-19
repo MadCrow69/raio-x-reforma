@@ -37,7 +37,9 @@ test('fluxo completo: enviar, confirmar, calcular nos motores reais e auditar', 
   // 4. Auditoria: REG-011 e CSV
   await page.getByRole('tab', { name: /^Auditoria/ }).click();
   await page.getByLabel('Buscar por nota, descrição, NCM/NBS ou cClassTrib').fill('CARNE BOVINA');
-  await expect(page.getByText('REG-011').first()).toBeVisible();
+  // a venda com NCM incompatível é recusada pelo motor regular (validação), mesmo com o valor vindo do Simples
+  await expect(page.getByRole('row').filter({ hasText: 'Venda' }).filter({ hasText: 'REG-011' })).toHaveCount(1);
+  await expect(page.getByRole('row').filter({ hasText: 'Compra' }).filter({ hasText: 'REG-011' })).toHaveCount(1);
   await page.getByLabel('Buscar por nota, descrição, NCM/NBS ou cClassTrib').fill('');
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Exportar CSV' }).click()]);
   expect(download.suggestedFilename()).toBe('raio-x-auditoria.csv');
@@ -45,7 +47,7 @@ test('fluxo completo: enviar, confirmar, calcular nos motores reais e auditar', 
   expect([...csv.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
   const linhas = csv.toString('utf8').replace(/^\uFEFF/, '').split('\r\n');
   expect(linhas[0]).toContain('Descrição');
-  expect(linhas.some((l) => l.includes('REG-011'))).toBe(true);
+  expect(linhas.some((l) => l.includes('Venda') && l.includes('REG-011'))).toBe(true);
 
   // 5. Memória de cálculo: as duas origens aparecem (vendas: composta pelo app; compras: texto do motor regular)
   await page.getByRole('tab', { name: 'Memória de cálculo' }).click();

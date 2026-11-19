@@ -96,4 +96,31 @@ describe('auditar', () => {
     const [b] = auditar([comGrupo], [], [calc(1, ['0.9', '0.1', '0'])], { [chave2]: op });
     expect([b.cst, b.cClassTrib]).toEqual(['200', '200003']);
   });
+
+  describe('validação do regime regular nas vendas (porFora)', () => {
+    const erros = [{ code: 'REG-011', title: 'NCM não vinculada', detail: 'd' }];
+    const recusado = (extra: Partial<ItemCalculado> = {}) =>
+      calc(1, ['0', '0', '0'], { estado: 'INCONSISTENCIA_ENTRADA', erros, ...extra });
+
+    it('venda com REG-011 só no porFora vira ERRO_MOTOR, com o código e o valor do Simples', () => {
+      const [l] = auditar([doc([item(1, ['0.9', '0.1', '0'])])], [], [calc(1, ['0.9', '0.1', '0'], { origemMemoria: 'COMPOSTA' })], {}, [recusado()]);
+      expect(l.achado).toBe('ERRO_MOTOR');
+      expect(l.erros.map((e) => e.code)).toEqual(['REG-011']);
+      expect(l.estado).toBe('CALCULO_SIMULADO');
+      expect(l.vMotor.toString()).toBe('1');
+      expect(l.origemMemoria).toBe('COMPOSTA');
+    });
+    it('venda que o regular não calculou e sem erro vira NAO_CALCULADO', () => {
+      const [l] = auditar([doc([item(1)])], [], [calc(1, ['0.9', '0.1', '0'])], {}, [calc(1, ['0', '0', '0'], { estado: 'FALHA_TECNICA' })]);
+      expect(l.achado).toBe('NAO_CALCULADO');
+    });
+    it('venda validada nos dois motores segue pela comparação de valores', () => {
+      const [l] = auditar([doc([item(1, ['0.9', '0.1', '0'])])], [], [calc(1, ['0.9', '0.1', '0'])], {}, [calc(1, ['9', '1', '0'])]);
+      expect(l.achado).toBe('OK');
+    });
+    it('compras não mudam: a validação só vale para vendas', () => {
+      const [l] = auditar([], [doc([item(1, ['0.9', '0.1', '0'])])], [calc(1, ['0.9', '0.1', '0'])], {}, [recusado()]);
+      expect(l.achado).toBe('OK');
+    });
+  });
 });

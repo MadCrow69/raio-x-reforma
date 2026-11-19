@@ -45,7 +45,7 @@ test('layout das telas nos 7 tamanhos', async ({ page }) => {
     await medir(page, tamanho, 'Resultado · Resumo', medicoes);
 
     await page.getByRole('tab', { name: /^Auditoria/ }).click();
-    await expect(page.getByRole('heading', { name: 'Auditoria', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Auditoria', level: 2 })).toBeAttached();
     await medir(page, tamanho, 'Resultado · Auditoria', medicoes);
 
     await page.getByRole('tab', { name: 'Memória de cálculo' }).click();
