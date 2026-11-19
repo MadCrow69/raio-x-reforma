@@ -6,7 +6,7 @@
   min-height: var(--altura-controle);
   padding: 0 var(--esp-4);
   border: 0;
-  border-radius: var(--raio-2);
+  border-radius: var(--raio);
   font: var(--texto-destaque);
   font-size: 15px;
   white-space: nowrap;
@@ -27,12 +27,12 @@
 }
 
 .botao--primario {
-  background: var(--cor-destaque-botao);
-  color: var(--cor-sobre-destaque);
+  background: var(--cor-cta);
+  color: var(--cor-sobre-cta);
 }
 
 .botao--primario:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--cor-destaque-botao) 88%, black);
+  background: color-mix(in srgb, var(--cor-cta) 88%, black);
 }
 
 .botao--secundario {

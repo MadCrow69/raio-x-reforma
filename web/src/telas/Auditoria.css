@@ -37,7 +37,7 @@
   justify-content: center;
   gap: var(--esp-2);
   padding: var(--esp-6) var(--esp-4);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio);
   background: var(--cor-superficie);
   text-align: center;
 }

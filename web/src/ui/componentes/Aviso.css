@@ -13,7 +13,7 @@
   align-items: flex-start;
   gap: var(--esp-3);
   padding: var(--esp-3) var(--esp-2) var(--esp-3) var(--esp-4);
-  border-radius: var(--raio-3);
+  border-radius: var(--raio);
   background: color-mix(in srgb, var(--cor-superficie-elevada) 92%, transparent);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -61,7 +61,7 @@
   width: 32px;
   height: 32px;
   border: 0;
-  border-radius: var(--raio-pilula);
+  border-radius: var(--raio);
   background: transparent;
   color: var(--cor-texto-2);
   cursor: pointer;

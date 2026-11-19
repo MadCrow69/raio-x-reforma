@@ -30,7 +30,7 @@
   min-height: var(--altura-controle);
   padding: 0 var(--esp-2);
   border: 1px solid var(--cor-separador);
-  border-radius: var(--raio-1);
+  border-radius: var(--raio);
   background: var(--cor-superficie);
   font: var(--texto-secundario);
 }
@@ -48,7 +48,7 @@
   width: var(--altura-controle);
   height: var(--altura-controle);
   border: 0;
-  border-radius: var(--raio-1);
+  border-radius: var(--raio);
   background: var(--cor-preenchimento);
   color: var(--cor-destaque-texto);
   cursor: pointer;

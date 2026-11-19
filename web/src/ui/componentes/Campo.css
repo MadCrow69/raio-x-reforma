@@ -19,7 +19,7 @@
 
 .campo__selo {
   padding: 0 var(--esp-2);
-  border-radius: var(--raio-pilula);
+  border-radius: var(--raio);
   background: var(--cor-alerta-suave);
   color: var(--cor-alerta-texto);
   font: var(--texto-nota);
@@ -34,7 +34,7 @@
   min-height: var(--altura-controle);
   padding: 0 var(--esp-3);
   border: 1px solid var(--cor-separador);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio);
   background: var(--cor-superficie);
 }
 

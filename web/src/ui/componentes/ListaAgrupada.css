@@ -16,7 +16,7 @@
 .lista-agrupada__cartao {
   container: lista-agrupada / inline-size;
   min-width: 0;
-  border-radius: var(--raio-2);
+  border-radius: var(--raio);
   background: var(--cor-superficie);
   box-shadow: var(--sombra-cartao);
   overflow: hidden;

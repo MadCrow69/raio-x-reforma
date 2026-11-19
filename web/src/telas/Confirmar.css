@@ -45,7 +45,7 @@
   gap: var(--esp-4);
   min-width: 0;
   padding: var(--esp-4);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio);
   background: var(--cor-superficie);
   box-shadow: var(--sombra-cartao);
 }

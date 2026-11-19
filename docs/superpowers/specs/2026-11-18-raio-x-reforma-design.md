@@ -99,6 +99,9 @@ Vendas: 62% para empresas · 38% para consumidor final
 - **Memória de cálculo**: texto do motor por item, com link a partir de cada linha da auditoria e de cada número do resumo.
 
 **Visual — estilo Apple (design system do projeto)**
+
+> **Mudança 2026-11-19 (pedido do usuário):** cores, fonte e forma passaram a ser as do site MLK Data Flow (paleta "verde de placa" #0F4D32, dourado #D9A441 só no botão primário, Geist, cantos de 4px, borda de 1px, sem sombra decorativa nem degradê, só modo claro). Os padrões de interação abaixo (lista agrupada, segmentado, folha, título grande) continuam. Fonte única: `web/src/ui/tokens.css`.
+
 - Título grande, listas agrupadas (inset grouped), controle segmentado para as abas, folhas que sobem de baixo no celular, cores do sistema (azul de destaque; semânticas verde/âmbar/vermelho), muito respiro, suporte a modo escuro.
 - Fonte: pilha do sistema (`-apple-system`, `BlinkMacSystemFont`) com **Inter** como alternativa (SF Pro e SF Symbols não podem ser usados fora de plataformas Apple). Ícones **Lucide** traço fino.
 - Interação segue convenções da web (a maioria dos contadores usa Windows).

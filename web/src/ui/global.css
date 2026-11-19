@@ -20,6 +20,11 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+::selection {
+  background: var(--cor-destaque-suave);
+  color: var(--cor-texto);
+}
+
 /* #root acompanha a altura do documento: a página (documento) é a única dona da rolagem. */
 #root {
   min-height: 100%;

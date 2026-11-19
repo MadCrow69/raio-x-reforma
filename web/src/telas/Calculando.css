@@ -30,7 +30,7 @@
   gap: var(--esp-3);
   min-width: 0;
   padding: var(--esp-4);
-  border-radius: var(--raio-2);
+  border-radius: var(--raio);
   background: var(--cor-superficie);
   box-shadow: var(--sombra-cartao);
 }
@@ -39,7 +39,7 @@
   width: 100%;
   height: 8px;
   border: 0;
-  border-radius: var(--raio-pilula);
+  border-radius: var(--raio);
   overflow: hidden;
   appearance: none;
   background: var(--cor-preenchimento-forte);
@@ -50,13 +50,13 @@
 }
 
 .calculando__barra::-webkit-progress-value {
-  border-radius: var(--raio-pilula);
+  border-radius: var(--raio);
   background: var(--cor-destaque);
   transition: width var(--duracao-media) ease;
 }
 
 .calculando__barra::-moz-progress-bar {
-  border-radius: var(--raio-pilula);
+  border-radius: var(--raio);
   background: var(--cor-destaque);
 }
 

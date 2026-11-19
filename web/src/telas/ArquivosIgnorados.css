@@ -7,7 +7,7 @@
 }
 
 .ignorados {
-  border-radius: var(--raio-1);
+  border-radius: var(--raio);
   background: var(--cor-fundo);
 }
 

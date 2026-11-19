@@ -4,7 +4,7 @@
   gap: var(--esp-1); /* 4 px entre opções (o medidor exige ≥ 4 px entre vizinhos) */
   max-width: 100%;
   padding: var(--esp-0);
-  border-radius: var(--raio-1);
+  border-radius: var(--raio);
   background: var(--cor-preenchimento);
 }
 
@@ -17,7 +17,7 @@
   min-height: 32px;
   padding: 0 var(--esp-4);
   border: 0;
-  border-radius: calc(var(--raio-1) - var(--esp-0)); /* raio interno = externo − folga */
+  border-radius: calc(var(--raio) - var(--esp-0)); /* raio interno = externo − folga */
   background: transparent;
   color: var(--cor-texto);
   font: var(--texto-secundario);
@@ -39,7 +39,7 @@
 .segmentado__contador {
   min-width: 20px;
   padding: 0 var(--esp-2);
-  border-radius: var(--raio-pilula);
+  border-radius: var(--raio);
   background: var(--cor-preenchimento-forte);
   font: var(--texto-nota);
   font-weight: 600;

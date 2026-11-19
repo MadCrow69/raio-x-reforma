@@ -31,6 +31,8 @@ O Resumo, com a seção "Como chegamos aqui", passou a rolar a página (document
 
 ## Observações
 
+- **Remedido em 2026-11-19 após a troca da identidade visual** (paleta, fonte Geist e cantos do site MLK Data Flow): 35 medições, **0 falhas**.
+
 - Zero falhas prova geometria, não beleza nem fluxo.
 - Em notebook real (1366×657) a Auditoria mostrava 5 linhas, contra 8 da tela-modelo. Ajustes, só nas telas de lista: a barra do Resultado virou uma linha (empresa · abas · Nova análise); em altura ≤ 700 px o título/contagem da Auditoria saem da vista (seguem para leitor de tela; a contagem está no selo da aba e no rodapé da tabela) e as margens verticais diminuem. Resultado: 8 linhas em 1366×657 (meta ≥ 8), 9 em 1366×768.
 - A rolagem vertical da página em Enviar/Confirmar nos tamanhos menores é esperada (conteúdo maior que a janela, sem rolagem aninhada).

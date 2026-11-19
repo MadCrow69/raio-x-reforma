@@ -1,21 +1,24 @@
 /*
- * Tokens do design system do Raio-X da Reforma (estilo Apple/HIG).
+ * Tokens do design system do Raio-X da Reforma.
  * Fonte única de cor, fonte, espaçamento, raio, altura de controle e movimento.
  * Componentes usam só estas variáveis — nunca hex cru.
  *
- * Contraste (WCAG 2.2 AA): o azul de destaque das Global Constraints (#007AFF / #0A84FF) é usado em
- * ícones, foco, bordas e seleção. Texto azul e botão preenchido usam variantes mais escuras do mesmo
- * azul porque #007AFF com texto branco dá 4,0:1 (abaixo de 4,5:1):
- *   --cor-destaque-texto  #0066CC sobre branco 5,6:1 · sobre #F2F2F7 5,0:1 (escuro: #409CFF sobre #1C1C1E 6,0:1;
- *                         #0A84FF daria só 3,5:1 sobre o cinza do botão secundário)
- *   --cor-destaque-botao  #0071E3 com texto branco 4,7:1 (nos dois modos)
- * O mesmo vale para as semânticas: o tom das Global Constraints pinta ponto/ícone; o "-texto" escreve.
+ * Identidade visual: a do site MLK Data Flow (repo mlkdataflows, src/app/globals.css — paleta
+ * "verde de placa": máscara de solda #0F4D32, contatos dourados #D9A441 só no CTA primário),
+ * com Geist, cantos de 4px, borda de 1px na cor "linha" e sem sombra decorativa nem degradê.
+ * Só modo claro, como o site. Os padrões de interação (lista agrupada, segmentado, folha) seguem.
+ *
+ * Contraste (WCAG 2.2 AA), medido:
+ *   texto #1B2620 sobre papel #F2F4F1 · texto-2 #4B5A50 sobre papel 6,6:1, sobre branco 7,3:1
+ *   destaque #0F4D32 sobre branco 9,9:1 · branco sobre destaque 9,9:1 · destaque sobre destaque-suave 7,5:1
+ *   CTA: texto #1B2620 sobre dourado #D9A441 6,9:1
+ *   semânticas "-texto" sobre branco: sucesso 6,3:1 · alerta 5,9:1 · erro 6,5:1
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  /* Fonte: pilha do sistema; Inter (auto-hospedada via @fontsource/inter) fora das plataformas Apple. */
-  --fonte: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  /* Fonte: Geist (auto-hospedada via @fontsource/geist), a mesma do site MLK Data Flow. */
+  --fonte: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* Escala de espaçamento 4/8/12/16/24/32 */
   --esp-0: 2px; /* SÓ tipográfico/ótico: entre título e detalhe, alinhamento de ícone com a 1ª linha, folga interna do segmentado */
@@ -26,11 +29,9 @@
   --esp-5: 24px;
   --esp-6: 32px;
 
-  /* Raios 8/12/16 (+ pílula) */
-  --raio-1: 8px;
-  --raio-2: 12px;
-  --raio-3: 16px;
-  --raio-pilula: 999px;
+  /* Raio único de 4px (sem pílula), como o site; círculo só para pontos de status e a alça da folha */
+  --raio: 4px;
+  --raio-circulo: 999px;
 
   /* Tipografia (papéis fixos) */
   --texto-titulo-grande: 700 34px/1.12 var(--fonte); /* Large Title — 1 por tela */
@@ -59,68 +60,54 @@
   --duracao-media: 280ms;
   --curva-padrao: cubic-bezier(0.32, 0.72, 0, 1);
 
-  /* Cores — claro */
-  --cor-fundo: #f2f2f7; /* systemGroupedBackground */
-  --cor-superficie: #ffffff; /* secondarySystemGroupedBackground */
-  --cor-superficie-elevada: #ffffff;
-  --cor-preenchimento: rgba(118, 118, 128, 0.12); /* fundo do segmentado, esqueleto */
-  --cor-preenchimento-forte: rgba(118, 118, 128, 0.2);
-  --cor-texto: #1d1d1f;
-  --cor-texto-2: #6e6e73; /* secundário: 5,1:1 sobre branco, 4,6:1 sobre o fundo */
-  --cor-separador: rgba(60, 60, 67, 0.18);
-  --cor-borda-tracejada: rgba(60, 60, 67, 0.3);
-  --cor-fundo-sobreposto: rgba(0, 0, 0, 0.4);
+  /* Paleta MLK Data Flow (nomes do site) */
+  --mlk-papel: #f2f4f1;
+  --mlk-superficie: #ffffff;
+  --mlk-grafite: #1b2620;
+  --mlk-grafite-2: #4b5a50;
+  --mlk-placa: #0f4d32;
+  --mlk-placa-claro: #d5e5da;
+  --mlk-linha: #c3cfc6;
+  --mlk-dourado: #d9a441;
+  --mlk-neutro: #e8ede9;
 
-  --cor-destaque: #007aff;
-  --cor-destaque-texto: #0066cc;
-  --cor-destaque-botao: #0071e3;
-  --cor-destaque-suave: rgba(0, 122, 255, 0.1);
+  /* Papéis */
+  --cor-fundo: var(--mlk-papel);
+  --cor-superficie: var(--mlk-superficie);
+  --cor-superficie-elevada: var(--mlk-superficie);
+  --cor-preenchimento: rgba(27, 38, 32, 0.07); /* grafite translúcido: fundo do segmentado, esqueleto */
+  --cor-preenchimento-forte: rgba(27, 38, 32, 0.12);
+  --cor-texto: var(--mlk-grafite);
+  --cor-texto-2: var(--mlk-grafite-2);
+  --cor-linha: var(--mlk-linha); /* bordas de cartão, lista e tabela */
+  --cor-separador: var(--mlk-linha);
+  --cor-borda-tracejada: rgba(75, 90, 80, 0.45);
+  --cor-fundo-sobreposto: rgba(27, 38, 32, 0.45);
+
+  --cor-destaque: var(--mlk-placa);
+  --cor-destaque-texto: var(--mlk-placa);
+  --cor-destaque-botao: var(--mlk-placa);
+  --cor-destaque-suave: var(--mlk-placa-claro);
   --cor-sobre-destaque: #ffffff;
-  --cor-marca-2: #5856d6; /* índigo do sistema: 2ª cor do degradê do símbolo da marca */
 
-  --cor-sucesso: #34c759;
-  --cor-sucesso-texto: #1e7b34;
-  --cor-alerta: #ff9f0a;
-  --cor-alerta-texto: #9a5800;
-  --cor-alerta-suave: rgba(255, 159, 10, 0.14);
-  --cor-erro: #ff3b30;
-  --cor-erro-texto: #c4001a;
-  --cor-erro-suave: rgba(255, 59, 48, 0.12);
+  /* Dourado: exclusivo do botão primário (o CTA de cada tela), como no site. Não usar em mais nada. */
+  --cor-cta: var(--mlk-dourado);
+  --cor-sobre-cta: var(--mlk-grafite);
 
-  --sombra-cartao: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.06);
-  --sombra-segmento: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04);
-}
+  --cor-sucesso: #3e7a5a;
+  --cor-sucesso-texto: #2e6b47;
+  --cor-alerta: #c96a00;
+  --cor-alerta-texto: #8a5a00;
+  --cor-alerta-suave: rgba(201, 106, 0, 0.12);
+  --cor-erro: #b3261e;
+  --cor-erro-texto: #b3261e;
+  --cor-erro-suave: rgba(179, 38, 30, 0.1);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cor-fundo: #000000;
-    --cor-superficie: #1c1c1e;
-    --cor-superficie-elevada: #2c2c2e;
-    --cor-preenchimento: rgba(118, 118, 128, 0.24);
-    --cor-preenchimento-forte: rgba(118, 118, 128, 0.36);
-    --cor-texto: #f5f5f7;
-    --cor-texto-2: #a1a1a6; /* 7,3:1 sobre #1C1C1E */
-    --cor-separador: rgba(84, 84, 88, 0.6);
-    --cor-borda-tracejada: rgba(235, 235, 245, 0.3);
-    --cor-fundo-sobreposto: rgba(0, 0, 0, 0.6);
-
-    --cor-destaque: #0a84ff;
-    --cor-destaque-texto: #409cff; /* azul de contraste aumentado do iOS: 4,5:1 até sobre o cinza do botão secundário */
-    --cor-destaque-botao: #0071e3;
-    --cor-destaque-suave: rgba(10, 132, 255, 0.18);
-    --cor-marca-2: #5e5ce6;
-
-    --cor-sucesso-texto: #34c759;
-    --cor-alerta-texto: #ff9f0a;
-    --cor-alerta-suave: rgba(255, 159, 10, 0.2);
-    --cor-erro-texto: #ff453a;
-    --cor-erro-suave: rgba(255, 69, 58, 0.2);
-
-    --sombra-cartao: none;
-    --sombra-flutuante: 0 12px 32px rgba(0, 0, 0, 0.5);
-    --sombra-segmento: 0 3px 8px rgba(0, 0, 0, 0.4);
-  }
+  /* Sem sombra decorativa: o "cartão" é uma borda de 1px desenhada como anel (não mexe no layout) */
+  --sombra-cartao: 0 0 0 1px var(--cor-linha);
+  --sombra-segmento: 0 0 0 1px var(--cor-linha);
+  /* Elevação só no que flutua (folha, filtros, aviso) */
+  --sombra-flutuante: 0 0 0 1px var(--cor-linha), 0 8px 24px rgba(27, 38, 32, 0.12);
 }
 
 @media (max-width: 767px) {
