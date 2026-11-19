@@ -29,3 +29,7 @@ Mecanismo de reuso (contexto nomeado `base`): `motores/simples-nacional.Dockerfi
 
 Regime regular `8080`, Simples `8082` (contexto `/api`). Nenhuma é publicada no `docker-compose.yml`;
 `docker-compose.spike.yml` publica em loopback só para verificação.
+
+## Versões mínimas
+
+Verificado com Docker Engine 29.8.0 e Docker Compose v5.5.1 (usa `additional_contexts` com `service:` e `deploy.replicas: 0`, que exigem Compose v2.17+ / BuildKit). `docker build --target base ...` (acima) e `docker compose ps` foram conferidos: o serviço `base` nunca aparece rodando.

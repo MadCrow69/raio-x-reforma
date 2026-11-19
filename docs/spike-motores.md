@@ -29,17 +29,21 @@ No Git Bash do Windows usar `MSYS_NO_PATHCONV=1` ao passar caminhos `/...` ao Do
 2. Simples `POST /api/calculadora/observabilidade/simples-nacional` (valores como **string**; `CRT`, `cAtivSN`, `cClassTrib`, `pIBSSN`, `pCBSSN` em camelCase exato):
    - `tpDoc=55`, `CRT=1`, `data=2027-03-15`, `cAtivSN=01`, base 950.00, `pCBSSN=2.75`, `pIBSSN=1.25` → `CALCULADO`, `vIBSSN=11.88`, `vCBSSN=26.12`, `totalItem=38.00` (`simples-nfe-2027.json`).
    - `tpDoc=91`, `cAtivSN=07` → mesmo cálculo (`simples-nfse-2027.json`).
+   - Corpos enviados: `*-request.json` ao lado de cada fixture. Valores do Simples são strings; `aliquotasNominais` do regular é `{"cbs":8.8,"ibsEstadual":0.05,"ibsMunicipal":0.05}` por item (números; `impostoSeletivo.adValorem` quando há IS).
    - Atividades têm `tpDocsAdmissiveis`: 01–04 → 55/65; 05 → 57/63/67/93; 06 → 62; 07–14 → 91; 90 → todos. Atividade incompatível com o `tpDoc` → item não calculado (sem erro).
 
 ## Cenário "IBS/CBS por fora" (empresa do Simples)
 
 - **Motor do Simples**: `CRT=3` + `tpRegimeIBSCBS=2` (admitido só com CRT=3) → 200, `CALCULADO`, mas **`vIBSSN=0`/`vCBSSN=0`** e os valores aparecem em `vIBSPendSusp=11.88`/`vCBSPendSusp=26.12` (apuração por fora; nada vai no DAS). `CRT=3` sem `tpRegimeIBSCBS=2` → 422 `VSN-019`. Fixture `simples-scenario-crt3-por-fora.json`.
-- **Motor do regime regular**: o valor efetivo do IBS/CBS apurado por fora (alíquotas cheias) vem de `POST /observabilidade/regime-geral` com `aliquotasNominais`. Fixture `regular-scenario-simples-por-fora.json` (NCM 61091000, cst 000/cClassTrib 000001, base 950.00, CBS 0.9, IBS 0.05+0.05 → vIBS 0.95, vCBS 8.55).
+- **Motor do regime regular**: o valor do IBS/CBS apurado por fora (regime regular) vem de `POST /observabilidade/regime-geral` com `aliquotasNominais`. Fixture `regular-scenario-simples-por-fora.json` (NCM 61091000, cst 000/cClassTrib 000001, base 950.00, mesmas alíquotas de 2027 de `regular-nfe-2027`: `cbs 8.8`, `ibsEstadual 0.05`, `ibsMunicipal 0.05` → vIBS 0.95, vCBS 83.60).
 - Conclusão: o cenário é reproduzido combinando as duas chamadas (Simples com CRT=3/tpRegimeIBSCBS=2 para o enquadramento; regular para o valor).
 
 ## municipio / uf (regime regular)
 
-NÃO VERIFICADO como "destino": o código só exige `municipio` (IBGE, obrigatório) e `uf` (opcional, derivada do município se ausente; validam-se entre si). O repositório não documenta se é local de destino/fornecimento; o motor usa esse local para buscar as alíquotas por UF/município. Com `aliquotasNominais` informadas em 2027 não há diferença observável no resultado. Tratar como "local da operação" até confirmação em NT/LC 214.
+VERIFICADO (mecanismo) / INFERIDO (semântica fiscal):
+- Código: `OperacaoInput.municipio` (IBGE, obrigatório) e `uf` (opcional, derivada do município se ausente) alimentam diretamente `ProcessamentoItemService` → `CalculoCbsIbsService.buscarAliquotaPadrao(idTributo, codigoUf, codigoMunicipio, data)`. A entrada tem **um único** par município/UF; o motor não distingue origem de destino — é o local cujas alíquotas de IBS estadual/municipal são buscadas.
+- Teste (2026-06-10, sem `aliquotasNominais`): RS/4314902, SP/3550308 e RJ/3304557 → todos `CALCULADO` com `pIBSUF 0.10` e `pIBSMun 0.00` (em 2026 as alíquotas de referência são uniformes, então não discrimina o local). `municipio=4314902` com `uf=SP` → 422 `REG-018` (município não pertence à UF).
+- Em 2027 as alíquotas vêm de `aliquotasNominais`, então o par só valida e rotula. Como o IBS é de destino (LC 214/2025), o front deve enviar o município/UF do **destino** (local da operação); isso é regra fiscal, não imposta pelo motor.
 
 ## Rotas de dados abertos (regime regular, base `/api/calculadora/dados-abertos`)
 
@@ -51,3 +55,9 @@ NÃO VERIFICADO como "destino": o código só exige `municipio` (IBGE, obrigató
 
 De 2027-01-01 em diante as três retornam **404** (`problem+json`, "Alíquota não encontrada"): alíquotas devem ir em `aliquotasNominais`. Fixtures `dados-abertos-aliquota-*.json`.
 Simples: `GET /api/calculadora/simples-nacional/atividades?data=2027-01-01` → array de 15 objetos `{codigo, ordem, descricao, anexoSemFatorR, anexoComFatorR, sujeitaFatorR, rotuloAnexo, rotuloCurtoAnexo, disponivel, anexosFaltantes, modoFatorR, tpDocsAdmissiveis}` (`simples-atividades-2027.json`).
+
+## Casos de erro / borda (para tipos TypeScript)
+
+- `simples-erro-vsn019.json` (+ `-request`): HTTP **422** `application/problem+json`: `{type,title,status,detail,instance,timestamp,errors:[{type,title,code,pointer,detail}]}` (`VSN-019`, `pointer: "#/CRT"`).
+- `simples-nao-calculado.json` (+ `-request`): HTTP **200**; `cAtivSN=07` (só `tpDoc` 91) com `tpDoc=55` → item `estadoItem:"NAO_CALCULADO"`, `tribCalc` só com `vRBSNitem`, `tpRBSN`, `tpRBSNDescricao`; `total` só com `vRBSNtot`; sem `erros`.
+- Regular: erro de item vem em `objetos[].erros[]` com 200 (`regular-nfe-2027.json`); erro de operação (ex. `REG-018`) é 422 problem+json no mesmo formato.
