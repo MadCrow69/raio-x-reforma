@@ -12,12 +12,15 @@ export interface OpcaoClassificacao {
 export interface TabelaSugestoes {
   ncm: Record<string, OpcaoClassificacao[]>;
   nbs: Record<string, OpcaoClassificacao[]>;
+  /** código (ou prefixo) excetuado → cClassTrib da linha aplicável que NÃO vale para ele */
+  excecoes: { ncm: Record<string, string[]>; nbs: Record<string, string[]> };
   padrao: OpcaoClassificacao;
 }
 
 export interface GrupoClassificacao {
   chave: string;
-  tipo: 'NCM' | 'NBS';
+  /** SEM_CODIGO: itens sem NCM e sem NBS (um grupo só, para também receberem cClassTrib confirmado) */
+  tipo: 'NCM' | 'NBS' | 'SEM_CODIGO';
   codigo: string;
   itens: number;
   valor: Big;
@@ -42,6 +45,7 @@ interface OpcaoJson {
 interface TabelaJson {
   ncm: Record<string, OpcaoJson[]>;
   nbs: Record<string, OpcaoJson[]>;
+  excecoes: { ncm: Record<string, string[]>; nbs: Record<string, string[]> };
   padrao: OpcaoJson;
 }
 
@@ -60,11 +64,19 @@ export async function carregarSugestoes(): Promise<TabelaSugestoes> {
   const resp = await fetch(URL_SUGESTOES);
   if (!resp.ok) throw new Error(`Falha ao carregar sugestões de classificação (HTTP ${resp.status})`);
   const json = (await resp.json()) as TabelaJson;
-  return { ncm: converterMapa(json.ncm), nbs: converterMapa(json.nbs), padrao: paraOpcao(json.padrao) };
+  return { ncm: converterMapa(json.ncm), nbs: converterMapa(json.nbs), excecoes: json.excecoes, padrao: paraOpcao(json.padrao) };
 }
 
 /** Opções cujo código na tabela é igual ou prefixo de `codigo`; a de prefixo mais longo vem primeiro. */
-function opcoesPorPrefixo(mapa: Record<string, OpcaoClassificacao[]>, codigo: string): OpcaoClassificacao[] {
+function opcoesPorPrefixo(
+  mapa: Record<string, OpcaoClassificacao[]>,
+  excecoes: Record<string, string[]>,
+  codigo: string,
+): OpcaoClassificacao[] {
+  const excecoesDoCodigo = Object.entries(excecoes).filter(([e]) => codigo.startsWith(e));
+  // exceção só retira opções vindas de uma linha aplicável mais genérica (prefixo menor) que a exceção
+  const excetuada = (prefixo: string, cClassTrib: string) =>
+    excecoesDoCodigo.some(([e, lista]) => e.length > prefixo.length && lista.includes(cClassTrib));
   const vistas = new Set<string>();
   const resultado: OpcaoClassificacao[] = [];
   const prefixos = Object.keys(mapa)
@@ -72,7 +84,7 @@ function opcoesPorPrefixo(mapa: Record<string, OpcaoClassificacao[]>, codigo: st
     .sort((a, b) => b.length - a.length);
   for (const p of prefixos) {
     for (const o of mapa[p]) {
-      if (vistas.has(o.cClassTrib)) continue;
+      if (vistas.has(o.cClassTrib) || excetuada(p, o.cClassTrib)) continue;
       vistas.add(o.cClassTrib);
       resultado.push(o);
     }
@@ -96,15 +108,18 @@ export function agruparParaConfirmacao(itens: ItemDocumento[], tabela: TabelaSug
   for (const item of itens) {
     const ncm = item.ncm?.replace(/\D/g, '');
     const nbs = item.nbs?.replace(/\D/g, '');
-    const tipo: 'NCM' | 'NBS' | undefined = ncm ? 'NCM' : nbs ? 'NBS' : undefined;
-    if (!tipo) continue; // sem NCM/NBS não há como sugerir classificação
-    const codigo = (tipo === 'NCM' ? ncm : nbs) as string;
+    const tipo: GrupoClassificacao['tipo'] = ncm ? 'NCM' : nbs ? 'NBS' : 'SEM_CODIGO';
+    const codigo = (tipo === 'NCM' ? ncm : tipo === 'NBS' ? nbs : '') as string;
     const nota = item.ibscbsNota;
-    const chave = nota ? `${tipo}:${codigo}:${nota.cClassTrib}` : `${tipo}:${codigo}`;
+    const base = tipo === 'SEM_CODIGO' ? tipo : `${tipo}:${codigo}`;
+    const chave = nota ? `${base}:${nota.cClassTrib}` : base;
 
     let grupo = grupos.get(chave);
     if (!grupo) {
-      const doTipo = opcoesPorPrefixo(tipo === 'NCM' ? tabela.ncm : tabela.nbs, codigo);
+      const doTipo =
+        tipo === 'NCM' ? opcoesPorPrefixo(tabela.ncm, tabela.excecoes.ncm, codigo)
+        : tipo === 'NBS' ? opcoesPorPrefixo(tabela.nbs, tabela.excecoes.nbs, codigo)
+        : [];
       if (nota) {
         const conhecida = localizarNaTabela(tabela, nota.cClassTrib);
         const sugerida: OpcaoClassificacao = conhecida

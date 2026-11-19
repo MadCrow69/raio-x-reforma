@@ -19,6 +19,7 @@ const especifica = opcao('200', '200003', 'Cesta básica', '100');
 const tabela: TabelaSugestoes = {
   ncm: { '0102': [reduzida, diferida], '01021000': [especifica] },
   nbs: { '101057000': [reduzida] },
+  excecoes: { ncm: { '01029000': ['515001'] }, nbs: {} },
   padrao,
 };
 
@@ -77,7 +78,7 @@ describe('agruparParaConfirmacao', () => {
   });
 
   it('casa por prefixo (posição de 4 dígitos) e lista a mais específica primeiro', () => {
-    const [a] = agruparParaConfirmacao([item(1, '10', { ncm: '01029000' })], tabela);
+    const [a] = agruparParaConfirmacao([item(1, '10', { ncm: '01022000' })], tabela);
     expect(a.origem).toBe('TABELA');
     expect(a.opcoes.map((o) => o.cClassTrib)).toEqual(['200038', '515001']);
     expect(a.sugerida.cClassTrib).toBe('200038');
@@ -98,7 +99,35 @@ describe('agruparParaConfirmacao', () => {
     expect(g[1].origem).toBe('PADRAO');
   });
 
-  it('ignora itens sem NCM e sem NBS', () => {
-    expect(agruparParaConfirmacao([item(1, '5')], tabela)).toEqual([]);
+  it('exceção retira a opção excetuada do código; sem sobra cai no padrão', () => {
+    const [a] = agruparParaConfirmacao([item(1, '10', { ncm: '01029000' })], tabela);
+    expect(a.opcoes.map((o) => o.cClassTrib)).toEqual(['200038']);
+
+    const t: TabelaSugestoes = { ...tabela, excecoes: { ncm: { '01029000': ['200038', '515001'] }, nbs: {} } };
+    const [b] = agruparParaConfirmacao([item(1, '10', { ncm: '01029000' })], t);
+    expect(b.origem).toBe('PADRAO');
+    expect(b.sugerida.cClassTrib).toBe('000001');
+  });
+
+  it('itens sem NCM e sem NBS formam um grupo SEM_CODIGO com o padrão', () => {
+    const [g] = agruparParaConfirmacao([item(1, '5'), item(2, '7')], tabela);
+    expect(g.chave).toBe('SEM_CODIGO');
+    expect(g.tipo).toBe('SEM_CODIGO');
+    expect(g.codigo).toBe('');
+    expect(g.itens).toBe(2);
+    expect(g.valor.eq(12)).toBe(true);
+    expect(g.origem).toBe('PADRAO');
+    expect(g.opcoes).toEqual([padrao]);
+    expect(g.sugerida).toBe(padrao);
+  });
+
+  it('item sem NCM/NBS com ibscbsNota forma grupo SEM_CODIGO:<cClassTrib> de origem NOTA', () => {
+    const [g] = agruparParaConfirmacao(
+      [item(1, '5', { ibscbsNota: { cst: '200', cClassTrib: '200038', vBC: new Big(5), vCBS: new Big(0), vIBSUF: new Big(0), vIBSMun: new Big(0) } })],
+      tabela,
+    );
+    expect(g.chave).toBe('SEM_CODIGO:200038');
+    expect(g.origem).toBe('NOTA');
+    expect(g.sugerida.cClassTrib).toBe('200038');
   });
 });
