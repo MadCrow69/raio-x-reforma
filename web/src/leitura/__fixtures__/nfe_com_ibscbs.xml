@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+    <infNFe Id="NFe41260311111111000111550010000000021100000024" versao="4.00">
+      <ide><cUF>41</cUF><mod>55</mod><serie>1</serie><nNF>2</nNF><dhEmi>2026-03-10T10:30:00-03:00</dhEmi><finNFe>1</finNFe></ide>
+      <emit><CNPJ>11111111000111</CNPJ><xNome>EMPRESA EMITENTE EXEMPLO LTDA</xNome>
+        <enderEmit><cMun>4113700</cMun><xMun>LONDRINA</xMun><UF>PR</UF></enderEmit><IE>1111111</IE><CRT>3</CRT></emit>
+      <dest><CNPJ>22222222000122</CNPJ><xNome>CLIENTE EXEMPLO LTDA</xNome>
+        <enderDest><cMun>3550308</cMun><xMun>SAO PAULO</xMun><UF>SP</UF></enderDest></dest>
+      <det nItem="1">
+        <prod>
+          <cProd>1</cProd><cEAN>SEM GTIN</cEAN>
+          <xProd>PRODUTO 1</xProd>
+          <NCM>22021000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom>
+          <vUnCom>100.00</vUnCom><vProd>100.00</vProd>
+          
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS><ICMS00><orig>0</orig><CST>00</CST></ICMS00></ICMS>
+          
+          <IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>100.00</vBC>
+            <gIBSUF><pIBSUF>0.10</pIBSUF><vIBSUF>0.10</vIBSUF></gIBSUF>
+            <gIBSMun><pIBSMun>0.00</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun>
+            <vIBS>0.10</vIBS><gCBS><pCBS>0.90</pCBS><vCBS>0.90</vCBS></gCBS></gIBSCBS></IBSCBS>
+        </imposto>
+      </det>
+    </infNFe>
+  </NFe>

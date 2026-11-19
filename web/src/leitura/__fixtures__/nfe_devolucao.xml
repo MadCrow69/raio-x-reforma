@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00"><NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+    <infNFe Id="NFe41260311111111000111550010000000041100000047" versao="4.00">
+      <ide><cUF>41</cUF><mod>55</mod><serie>1</serie><nNF>4</nNF><dhEmi>2026-03-10T10:30:00-03:00</dhEmi><finNFe>4</finNFe></ide>
+      <emit><CNPJ>11111111000111</CNPJ><xNome>EMPRESA EMITENTE EXEMPLO LTDA</xNome>
+        <enderEmit><cMun>4113700</cMun><xMun>LONDRINA</xMun><UF>PR</UF></enderEmit><IE>1111111</IE><CRT>3</CRT></emit>
+      <dest><CNPJ>22222222000122</CNPJ><xNome>CLIENTE EXEMPLO LTDA</xNome>
+        <enderDest><cMun>3550308</cMun><xMun>SAO PAULO</xMun><UF>SP</UF></enderDest></dest>
+      <det nItem="1">
+        <prod>
+          <cProd>1</cProd><cEAN>SEM GTIN</cEAN>
+          <xProd>PRODUTO 1</xProd>
+          <NCM>22021000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom>
+          <vUnCom>100.00</vUnCom><vProd>100.00</vProd>
+          
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS><ICMS00><orig>0</orig><CST>00</CST></ICMS00></ICMS>
+          
+          
+        </imposto>
+      </det>
+    </infNFe>
+  </NFe><protNFe versao="4.00"><infProt><tpAmb>2</tpAmb><chNFe>41260311111111000111550010000000041100000047</chNFe><cStat>100</cStat></infProt></protNFe></nfeProc>

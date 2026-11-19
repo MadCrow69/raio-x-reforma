@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NFSe versao="1.01" xmlns="http://www.sped.fazenda.gov.br/nfse">
+  <infNFSe Id="NFS41137002211111111000111000000000022826054848833960">
+    <nNFSe>228</nNFSe>
+    <emit><CNPJ>11111111000111</CNPJ><xNome>EMPRESA EMITENTE EXEMPLO LTDA</xNome><enderNac><cMun>4113700</cMun><UF>PR</UF></enderNac></emit>
+    <valores><vBC>1000.00</vBC><vISSQN>50.00</vISSQN><vLiq>1000.00</vLiq></valores>
+    <IBSCBS><valores><vBC>950.00</vBC></valores><totCIBS><gIBS><vIBSTot>0.95</vIBSTot><gIBSUFTot><vIBSUF>0.95</vIBSUF></gIBSUFTot><gIBSMunTot><vIBSMun>0.00</vIBSMun></gIBSMunTot></gIBS><gCBS><vCBS>8.55</vCBS></gCBS></totCIBS></IBSCBS>
+    <DPS versao="1.01"><infDPS Id="DPS411370021111111100011100900000000000001255">
+      <dhEmi>2026-05-18T18:20:52-03:00</dhEmi>
+      <prest><CNPJ>11111111000111</CNPJ><regTrib><opSimpNac>1</opSimpNac></regTrib></prest>
+      <toma><CNPJ>22222222000122</CNPJ><xNome>TOMADOR EXEMPLO LTDA</xNome><end><endNac><cMun>3550308</cMun></endNac></end></toma>
+      <serv><cServ><cTribNac>010101</cTribNac><xDescServ>Análise e desenvolvimento de sistemas</xDescServ><cNBS>115021000</cNBS></cServ></serv>
+      <valores><vServPrest><vServ>1000.00</vServ></vServPrest><vDescCondIncond><vDescIncond>50.00</vDescIncond><vDescCond>10.00</vDescCond></vDescCondIncond>
+        <trib><tribMun><tribISSQN>1</tribISSQN></tribMun></trib></valores>
+      <IBSCBS><valores><trib><gIBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib></gIBSCBS></trib></valores></IBSCBS>
+    </infDPS></DPS>
+  </infNFSe>
+</NFSe>
